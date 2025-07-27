@@ -38,7 +38,10 @@ export function PCBuilderAssistant() {
                 placeholder="Search products..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="border rounded px-4 py-2 w-full max-w-lg"
+                className="border rounded px-4 py-2 w-full max-w-lg transition-colors duration-200"
+                style={{
+                  color: search.length > 0 ? "#2563eb" : "#1f2937" // Blue when typing, gray when empty
+                }}
               />
             </div>
             {search && (
