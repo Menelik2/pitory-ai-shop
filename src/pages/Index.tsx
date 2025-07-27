@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
+import { PCBuilderAssistant } from "@/components/PCBuilderAssistant";
 import { Footer } from "@/components/Footer";
 import { mockProducts, Product } from "@/data/mockProducts";
 import { useCart } from "@/context/CartContext";
@@ -59,6 +60,7 @@ const Index = () => {
       
       <main>
         <Hero />
+        <PCBuilderAssistant />
         
         <div className="container mx-auto px-4 py-8">
           <ProductFilters
