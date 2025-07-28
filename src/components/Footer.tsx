@@ -19,7 +19,7 @@ export function Footer() {
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
-                <span>Email: support@pcforge.com</span>
+                <span>Email: pitorypc@gmail.com</span>
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Phone className="h-4 w-4" />
@@ -31,8 +31,8 @@ export function Footer() {
           <div>
             <h4 className="font-semibold mb-4">Business Hours</h4>
             <div className="space-y-2 text-muted-foreground">
-              <p>Monday - Friday: 9:00 AM - 6:00 PM</p>
-              <p>Saturday: 10:00 AM - 4:00 PM</p>
+              <p>Monday - Friday: 2:00 AM - 12:00 PM</p>
+              <p>Saturday: 2:00 AM - 12:00 PM</p>
               <p>Sunday: Closed</p>
             </div>
           </div>
