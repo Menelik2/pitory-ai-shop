@@ -44,7 +44,6 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 rounded-t-2xl
               "
             />
-            {/* Category Badge */}
             <Badge className="
               absolute top-3 left-3
               bg-fuchsia-600 text-white px-4 py-1 text-xs font-bold shadow
@@ -59,31 +58,31 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         </CardHeader>
 
         <CardContent className="flex-1 px-5 py-4 text-center">
-          <h3 className="font-extrabold text-lg mb-1 line-clamp-2 text-fuchsia-100 tracking-wide font-serif">
+          <h3 className="font-extrabold text-lg mb-1 line-clamp-2 text-yellow-300 tracking-wide font-serif drop-shadow">
             {product.name}
           </h3>
-          <p className="text-xs text-purple-200 mb-3 line-clamp-2 italic font-light">
+          <p className="text-xs text-white mb-3 line-clamp-2 italic font-light drop-shadow">
             {product.description}
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-2">
-            <span className="flex items-center gap-2 px-2 py-1 bg-indigo-800/70 rounded-full text-xs text-indigo-100 font-bold">
+            <span className="flex items-center gap-2 px-2 py-1 bg-indigo-800 rounded-full text-xs text-yellow-200 font-bold border border-yellow-300">
               CPU: <span className="font-normal">{product.cpu.split(' ').slice(-1)[0]}</span>
             </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-purple-800/70 rounded-full text-xs text-purple-100 font-bold">
+            <span className="flex items-center gap-2 px-2 py-1 bg-purple-800 rounded-full text-xs text-pink-200 font-bold border border-pink-400">
               Generation: <span className="font-normal">{product.generation}</span>
             </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-fuchsia-800/70 rounded-full text-xs text-fuchsia-100 font-bold">
+            <span className="flex items-center gap-2 px-2 py-1 bg-fuchsia-800 rounded-full text-xs text-green-200 font-bold border border-green-400">
               RAM: <span className="font-normal">{product.ram}</span>
             </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-pink-700/70 rounded-full text-xs text-pink-100 font-bold">
+            <span className="flex items-center gap-2 px-2 py-1 bg-pink-700 rounded-full text-xs text-cyan-100 font-bold border border-cyan-400">
               Storage: <span className="font-normal">{product.storage}</span>
             </span>
           </div>
           <div className="flex items-center justify-between mt-2">
-            <div className="text-xl font-extrabold text-fuchsia-200 font-mono">
+            <div className="text-xl font-extrabold text-yellow-300 font-mono drop-shadow">
               ${product.price.toLocaleString()}
             </div>
-            <div className="text-xs px-2 py-1 rounded-full bg-green-500/30 text-green-100 font-bold shadow">
+            <div className="text-xs px-2 py-1 rounded-full bg-green-600 text-white font-bold shadow border border-green-300">
               In Stock
             </div>
           </div>
@@ -97,15 +96,16 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             }}
             className="
               w-full
-              bg-gradient-to-r from-fuchsia-700 via-purple-700 to-indigo-700
-              hover:from-fuchsia-800 hover:to-indigo-800
+              bg-gradient-to-r from-yellow-400 via-fuchsia-600 to-indigo-700
+              hover:from-yellow-500 hover:to-indigo-800
               text-white font-bold py-2 rounded-full shadow
               transition-all duration-200
               scale-95 group-hover:scale-105
-              hover:shadow-lg
+              hover:shadow-xl
               flex items-center justify-center
               text-lg tracking-wider
               font-serif
+              drop-shadow
             "
           >
             Add to Cart
