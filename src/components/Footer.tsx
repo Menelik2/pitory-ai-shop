@@ -7,7 +7,8 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h3 className="font-bold text-lg mb-4 bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-              Pitory Computer
+             
+              <a href="/" className="hover:text-primary transition-colors"> Pitory Computer </a>
             </h3>
             <p className="text-muted-foreground">
               Your trusted partner for high-performance computers and exceptional customer service.
