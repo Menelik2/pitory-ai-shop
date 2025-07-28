@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ShoppingCart, Menu, X } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
 
 interface HeaderProps {
   cartItemCount: number;
@@ -13,6 +14,7 @@ interface HeaderProps {
 export function Header({ cartItemCount, onSearch }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const { user, signOut, isAdmin } = useAuth();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
 
   const navigationLinks = [
     { name: "Home", href: "/" },
-    { name: "Admin", href: "/admin" },
+    ...(isAdmin ? [{ name: "Admin", href: "/admin" }] : []),
   ];
 
   return (
@@ -65,7 +67,7 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
             </Button>
           </form>
 
-          {/* Cart and Mobile Menu */}
+          {/* Cart and Auth */}
           <div className="flex items-center space-x-4">
             {/* Cart Icon */}
             <Link to="/cart">
@@ -78,6 +80,28 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                 )}
               </Button>
             </Link>
+
+            {/* Auth Buttons */}
+            <div className="hidden md:flex items-center space-x-2">
+              {user ? (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={signOut}
+                  className="hover:bg-muted"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              ) : (
+                <Link to="/auth">
+                  <Button variant="outline" size="sm">
+                    <User className="h-4 w-4 mr-2" />
+                    Sign In
+                  </Button>
+                </Link>
+              )}
+            </div>
 
             {/* Mobile Menu */}
             <div className="md:hidden">

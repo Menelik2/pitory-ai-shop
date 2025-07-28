@@ -1,17 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash2 } from "lucide-react";
-import { mockProducts, Product } from "@/data/mockProducts";
 import { ProductForm } from "./ProductForm";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  category: string;
+  price: number;
+  detailed_specs: any;
+  stock_quantity: number;
+  image_urls: string[];
+  description: string;
+}
 
 export function ProductTable() {
-  const [products, setProducts] = useState(mockProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setProducts(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddProduct = () => {
     setSelectedProduct(undefined);
@@ -23,36 +60,65 @@ export function ProductTable() {
     setIsFormOpen(true);
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
-    toast({
-      title: "Product deleted",
-      description: "The product has been successfully removed.",
-    });
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+      
+      setProducts(prev => prev.filter(p => p.id !== productId));
+      toast({
+        title: "Product deleted",
+        description: "The product has been successfully removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleSaveProduct = (productData: Partial<Product>) => {
-    if (selectedProduct) {
-      // Update existing product
-      setProducts(prev => prev.map(p => 
-        p.id === selectedProduct.id 
-          ? { ...p, ...productData }
-          : p
-      ));
+  const handleSaveProduct = async (productData: any) => {
+    try {
+      if (selectedProduct) {
+        // Update existing product
+        const { error } = await supabase
+          .from('products')
+          .update(productData)
+          .eq('id', selectedProduct.id);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Product updated",
+          description: "The product has been successfully updated.",
+        });
+      } else {
+        // Add new product
+        const { error } = await supabase
+          .from('products')
+          .insert([productData]);
+
+        if (error) throw error;
+        
+        toast({
+          title: "Product added",
+          description: "The product has been successfully added.",
+        });
+      }
+      
+      setIsFormOpen(false);
+      fetchProducts();
+    } catch (error) {
       toast({
-        title: "Product updated",
-        description: "The product has been successfully updated.",
-      });
-    } else {
-      // Add new product
-      const newProduct: Product = {
-        id: Date.now().toString(),
-        ...productData as Product,
-      };
-      setProducts(prev => [...prev, newProduct]);
-      toast({
-        title: "Product added",
-        description: "The product has been successfully added.",
+        title: "Error",
+        description: "Failed to save product",
+        variant: "destructive",
       });
     }
   };
@@ -95,18 +161,18 @@ export function ProductTable() {
                 <TableRow key={product.id}>
                   <TableCell>
                     <img
-                      src={product.image}
+                      src={product.image_urls?.[0] || "https://placehold.co/600x400.png"}
                       alt={product.name}
                       className="w-12 h-12 object-cover rounded"
                     />
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.brand}</TableCell>
-                  <TableCell>{product.cpu.split(' ').pop()}</TableCell>
-                  <TableCell>{product.generation}</TableCell>
-                  <TableCell>{product.ram}</TableCell>
+                  <TableCell>{product.detailed_specs?.cpu || 'N/A'}</TableCell>
+                  <TableCell>{product.detailed_specs?.generation || 'N/A'}</TableCell>
+                  <TableCell>{product.detailed_specs?.ram || 'N/A'}</TableCell>
                   <TableCell>${product.price.toLocaleString()}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
+                  <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button

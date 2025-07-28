@@ -38,11 +38,17 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    /* Purple gradient colors */
+    /* Enhanced design system */
     --gradient-from: 263 70% 50.4%;
     --gradient-to: 270 80% 40%;
     --gradient-primary: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
     --gradient-secondary: linear-gradient(45deg, hsl(var(--gradient-from) / 0.2), hsl(var(--gradient-to) / 0.1));
+    --gradient-card: linear-gradient(135deg, hsl(240 10% 3.9% / 0.8), hsl(240 5% 8% / 0.9));
+    --glow-primary: 0 0 40px hsl(263 70% 50.4% / 0.4);
+    --shadow-elegant: 0 20px 60px -10px hsl(263 70% 50.4% / 0.2);
+    --shadow-card: 0 12px 40px -8px hsl(263 70% 50.4% / 0.15);
+    --shadow-hover: 0 25px 80px -12px hsl(263 70% 50.4% / 0.3);
+    --border-gradient: linear-gradient(135deg, hsl(263 70% 50.4% / 0.3), hsl(270 80% 40% / 0.2));
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -64,5 +70,39 @@ All colors MUST be HSL.
     @apply text-foreground;
     background: var(--gradient-primary);
     min-height: 100vh;
+  }
+}
+
+@layer utilities {
+  .glass-effect {
+    @apply bg-card/80 backdrop-blur-md border border-border/50;
+  }
+  
+  .tech-gradient {
+    background: var(--gradient-primary);
+  }
+  
+  .card-gradient {
+    background: var(--gradient-card);
+  }
+  
+  .shadow-tech {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-hover-tech {
+    box-shadow: var(--shadow-hover);
+  }
+  
+  .glow-primary {
+    box-shadow: var(--glow-primary);
+  }
+
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  .border-gradient {
+    border-image: var(--border-gradient) 1;
   }
 }
