@@ -1,49 +1,47 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { categories } from "@/data/mockProducts";
+// src/components/ProductList.tsx
+import React, { useState } from "react";
+import { ProductFilters } from "./ProductFilters";
+import { ProductCard } from "./ProductCard";
+import { products } from "@/data/mockProducts";
 
-interface ProductFiltersProps {
-  selectedCategory: string;
-  sortBy: string;
-  onCategoryChange: (category: string) => void;
-  onSortChange: (sort: string) => void;
-}
+export function ProductList() {
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [sortBy, setSortBy] = useState("");
 
-export function ProductFilters({
-  selectedCategory,
-  sortBy,
-  onCategoryChange,
-  onSortChange,
-}: ProductFiltersProps) {
+  // Filter by category
+  const filteredProducts = selectedCategory
+    ? products.filter(p => p.category === selectedCategory)
+    : products;
+
+  // Sort products BEFORE displaying ProductCard
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (sortBy) {
+      case "name-asc":
+        return a.name.localeCompare(b.name);
+      case "name-desc":
+        return b.name.localeCompare(a.name);
+      case "price-asc":
+        return a.price - b.price;
+      case "price-desc":
+        return b.price - a.price;
+      default:
+        return 0;
+    }
+  });
+
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-8">
-      <div className="flex-1">
-        <Select value={selectedCategory} onValueChange={onCategoryChange}>
-          <SelectTrigger className="bg-card/80 backdrop-blur">
-            <SelectValue placeholder="Filter by category" />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((category) => (
-              <SelectItem key={category} value={category}>
-                {category}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+    <>
+      <ProductFilters
+        selectedCategory={selectedCategory}
+        sortBy={sortBy}
+        onCategoryChange={setSelectedCategory}
+        onSortChange={setSortBy}
+      />
+      <div>
+        {sortedProducts.map(product => (
+          <ProductCard key={product.id} product={product} />
+        ))}
       </div>
-      
-      <div className="flex-1">
-        <Select value={sortBy} onValueChange={onSortChange}>
-          <SelectTrigger className="bg-card/80 backdrop-blur">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name-asc">Name A-Z</SelectItem>
-            <SelectItem value="name-desc">Name Z-A</SelectItem>
-            <SelectItem value="price-asc">Price Low-High</SelectItem>
-            <SelectItem value="price-desc">Price High-Low</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-    </div>
+    </>
   );
 }
