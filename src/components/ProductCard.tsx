@@ -23,96 +23,67 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     <Link to={`/products/${product.id}`} className="block">
       <Card className="
         max-w-xs min-h-[380px] mx-auto
-        rounded-[24px] overflow-hidden
-        bg-pink-200/30 border border-white/40
-        shadow-2xl backdrop-blur-xl
+        rounded-xl overflow-hidden
+        bg-white border border-gray-200
+        shadow-lg
         transition-all duration-500
-        hover:-translate-y-2 hover:scale-105 hover:shadow-pink-400/40
+        hover:-translate-y-2 hover:scale-105 hover:shadow-xl
         group relative
       ">
-        {/* Shimmer Accent */}
-        <span className="
-          pointer-events-none absolute inset-0 rounded-[24px]
-          bg-gradient-to-tr from-pink-100/40 via-transparent to-blue-100/30
-          opacity-0 group-hover:opacity-70
-          transition-opacity duration-700
-        " />
-
-        {/* Image + Badge */}
         <CardHeader className="p-0">
-          <div className="relative aspect-video overflow-hidden rounded-t-[24px]">
+          <div className="relative aspect-video overflow-hidden rounded-t-xl">
             <img
               src={product.image}
               alt={product.name}
               className="
                 w-full h-full object-cover
                 transition-transform duration-500
-                group-hover:scale-110
-                rounded-t-[24px]
+                group-hover:scale-105
+                rounded-t-xl
               "
             />
-            {/* Cute Gradient Overlay */}
-            <div className="
-              absolute inset-0 bg-gradient-to-t from-pink-300/30 to-transparent
-              pointer-events-none
-              transition-opacity duration-500
-              opacity-0 group-hover:opacity-80
-            " />
             {/* Category Badge */}
             <Badge className="
               absolute top-3 left-3
               bg-pink-400 text-white px-4 py-1 text-xs font-bold shadow
-              rounded-full backdrop-blur-md
+              rounded-full
               scale-90 group-hover:scale-110
               transition-transform duration-300
-              border border-white/30
             ">
               {product.category}
             </Badge>
-            {/* Floating Icon */}
-            <div className="
-              absolute top-3 right-3
-              opacity-0 group-hover:opacity-100
-              transition-opacity duration-300
-            ">
-              <div className="bg-white/80 backdrop-blur-md rounded-full p-2 shadow border border-pink-200">
-                <span className="text-xl animate-bounce">✨</span>
-              </div>
-            </div>
           </div>
         </CardHeader>
 
-        {/* Content */}
         <CardContent className="flex-1 px-4 py-2 text-center">
-          <h3 className="font-bold text-lg mb-1 line-clamp-2 bg-gradient-to-r from-pink-500 via-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow">
+          <h3 className="font-bold text-lg mb-1 line-clamp-2 text-pink-600">
             {product.name}
           </h3>
-          <p className="text-xs text-pink-900/70 mb-2 line-clamp-2 italic">{product.description}</p>
+          <p className="text-xs text-gray-600 mb-2 line-clamp-2 italic">{product.description}</p>
           <div className="flex flex-wrap justify-center gap-2 mb-2">
-            <span className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full text-xs text-pink-700/80 shadow-sm">
-              🧸 {product.cpu.split(' ').slice(-1)[0]}
+            <span className="flex items-center gap-2 px-2 py-1 bg-pink-50 rounded-full text-xs text-pink-700 font-bold">
+              CPU: <span className="font-normal">{product.cpu.split(' ').slice(-1)[0]}</span>
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full text-xs text-blue-600/80 shadow-sm">
-              🌈 {product.generation}
+            <span className="flex items-center gap-2 px-2 py-1 bg-purple-50 rounded-full text-xs text-purple-700 font-bold">
+              Generation: <span className="font-normal">{product.generation}</span>
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full text-xs text-purple-600/80 shadow-sm">
-              🍬 {product.ram}
+            <span className="flex items-center gap-2 px-2 py-1 bg-blue-50 rounded-full text-xs text-blue-700 font-bold">
+              RAM: <span className="font-normal">{product.ram}</span>
             </span>
-            <span className="flex items-center gap-1 px-2 py-1 bg-white/40 rounded-full text-xs text-pink-600/80 shadow-sm">
-              🎀 {product.storage}
+            <span className="flex items-center gap-2 px-2 py-1 bg-green-50 rounded-full text-xs text-green-700 font-bold">
+              Storage: <span className="font-normal">{product.storage}</span>
             </span>
           </div>
           <div className="flex items-center justify-between mt-2">
-            <div className="text-xl font-extrabold bg-gradient-to-r from-pink-600 via-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow">
+            <div className="text-xl font-extrabold text-pink-600">
               ${product.price.toLocaleString()}
             </div>
-            <div className="text-xs px-2 py-1 rounded-full bg-green-300/40 text-green-800 font-bold shadow">
+            <div className="text-xs px-2 py-1 rounded-full bg-green-200 text-green-900 font-bold shadow">
               In Stock
             </div>
           </div>
         </CardContent>
 
-        {/* Button */}
         <CardFooter className="px-4 pt-0 pb-4">
           <Button
             onClick={(e) => {
@@ -121,8 +92,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             }}
             className="
               w-full
-              bg-gradient-to-r from-pink-400 via-purple-400 to-blue-400
-              hover:from-pink-400/90 hover:to-blue-400/80
+              bg-pink-500 hover:bg-pink-400
               text-white font-semibold py-2 rounded-full shadow
               transition-all duration-200
               scale-95 group-hover:scale-105
@@ -131,7 +101,6 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               text-lg
             "
           >
-            <span className="mr-2 animate-bounce">🛒</span>
             Add to Cart
           </Button>
         </CardFooter>
