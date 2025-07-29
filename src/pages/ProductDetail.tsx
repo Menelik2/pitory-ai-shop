@@ -49,10 +49,8 @@ export default function ProductDetail() {
           <div className="aspect-square bg-card rounded-lg overflow-hidden">
             <img
               src={product.image}
-              alt={product.name}
-              
-             className= "max-h-[300px] sm:max-h-[400px] md:max-h-[500px]"
-             
+              alt={product.name}   
+             className="w-full h-full object-cover"
             />
           </div>
           
