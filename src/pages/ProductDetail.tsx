@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart, Cpu, Monitor, HardDrive, MemoryStick } from "lucide-react";
 import { mockProducts } from "@/data/mockProducts";
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
@@ -19,7 +19,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-indigo-100">
+      <div className="min-h-screen flex items-center justify-center">
         <p className="text-xl font-semibold text-gray-700">Product not found</p>
       </div>
     );
@@ -40,7 +40,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-indigo-50">
+    <div className="min-h-screen">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
 
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
@@ -57,7 +57,7 @@ export default function ProductDetail() {
           {/* Product Info */}
           <div className="flex-1 flex flex-col justify-center gap-6">
             <div>
-              <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold bg-indigo-100 text-indigo-600">
+              <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold">
                 {product.category}
               </Badge>
               <p className="text-sm text-gray-500 mb-2">Brand: {product.brand}</p>
@@ -70,32 +70,46 @@ export default function ProductDetail() {
             </div>
             <p className="text-base sm:text-lg text-gray-700 mb-4">{product.description}</p>
 
-            {/* Specifications */}
-            <Card className="bg-gray-50/80 border-none">
-              <CardContent className="p-4 sm:p-6">
-                <h3 className="font-bold mb-4 flex items-center gap-2 text-indigo-700">
-                  <span>📋</span> CPU: {product.cpu}
-                </h3>
-                <div className="grid grid-cols-2 gap-3 text-sm">
+            {/* Specifications - now a clear labeled list */}
+            <Card className="border-none shadow-none bg-transparent p-0">
+              <CardContent className="p-0">
+                <h3 className="font-bold mb-3 text-gray-700 text-lg">Specifications</h3>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
                   <div className="flex items-center gap-2">
-                    <span>⚡</span>
-                    <span>Generation: {product.generation}</span>
+                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
+                      <Cpu className="w-5 h-5 text-indigo-500" />
+                      CPU
+                    </dt>
+                    <dd className="ml-2 text-gray-800">{product.cpu}</dd>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span>🧠</span>
-                    <span>RAM: {product.ram}</span>
+                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
+                      <MemoryStick className="w-5 h-5 text-purple-500" />
+                      RAM
+                    </dt>
+                    <dd className="ml-2 text-gray-800">{product.ram}</dd>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span>💾</span>
-                    <span>Storage: {product.storage}</span>
+                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
+                      <HardDrive className="w-5 h-5 text-teal-500" />
+                      Storage
+                    </dt>
+                    <dd className="ml-2 text-gray-800">{product.storage}</dd>
                   </div>
                   {product.display && (
                     <div className="flex items-center gap-2">
-                      <span>🖥️</span>
-                      <span>Display: {product.display}</span>
+                      <dt className="flex items-center gap-1 text-gray-600 font-medium">
+                        <Monitor className="w-5 h-5 text-pink-500" />
+                        Display
+                      </dt>
+                      <dd className="ml-2 text-gray-800">{product.display}</dd>
                     </div>
                   )}
-                </div>
+                  <div className="flex items-center gap-2">
+                    <dt className="text-gray-600 font-medium">Generation</dt>
+                    <dd className="ml-2 text-gray-800">{product.generation}</dd>
+                  </div>
+                </dl>
               </CardContent>
             </Card>
 
