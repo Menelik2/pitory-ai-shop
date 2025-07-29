@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
 
@@ -19,7 +20,7 @@ export default function ProductDetail() {
 
   if (!product) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-xl font-semibold text-gray-700">Product not found</p>
       </div>
     );
@@ -40,11 +41,11 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-gray-50">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
 
       <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-8 bg-white/90 rounded-3xl shadow-2xl p-4 sm:p-8">
+        <div className="flex flex-col lg:flex-row gap-8 bg-gray-100 rounded-3xl shadow-2xl p-4 sm:p-8">
           {/* Product Image */}
           <div className="flex-1 flex items-center justify-center">
             <img
@@ -57,7 +58,7 @@ export default function ProductDetail() {
           {/* Product Info */}
           <div className="flex-1 flex flex-col justify-center gap-6">
             <div>
-              <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold">
+              <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold bg-indigo-100 text-indigo-600">
                 {product.category}
               </Badge>
               <p className="text-sm text-gray-500 mb-2">Brand: {product.brand}</p>
@@ -70,8 +71,8 @@ export default function ProductDetail() {
             </div>
             <p className="text-base sm:text-lg text-gray-700 mb-4">{product.description}</p>
 
-            {/* Specifications - now a clear labeled list */}
-            <Card className="border-none shadow-none bg-transparent p-0">
+            {/* Specifications */}
+            <Card className="border-none shadow-none bg-gray-50 p-0">
               <CardContent className="p-0">
                 <h3 className="font-bold mb-3 text-gray-700 text-lg">Specifications</h3>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
@@ -156,9 +157,9 @@ export default function ProductDetail() {
               {similarProducts.map((similarProduct) => (
                 <Card
                   key={similarProduct.id}
-                  className="overflow-hidden hover:shadow-xl transition-shadow bg-white border border-gray-200 rounded-2xl"
+                  className="overflow-hidden hover:shadow-xl transition-shadow bg-gray-100 border border-gray-200 rounded-2xl"
                 >
-                  <div className="aspect-video relative overflow-hidden bg-gray-100">
+                  <div className="aspect-video relative overflow-hidden bg-gray-200">
                     <img
                       src={similarProduct.image}
                       alt={similarProduct.name}
@@ -173,6 +174,7 @@ export default function ProductDetail() {
                     <Button
                       size="sm"
                       className="w-full mt-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold"
+                      onClick={() => navigate(`/product/${similarProduct.id}`)}
                     >
                       View Details
                     </Button>
