@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import { toast } from "@/hooks/use-toast";
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
 
@@ -40,20 +41,11 @@ export default function ProductDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50"> {/* Change bg-gray-50 to match home page bg */}
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
 
-      <main className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-8 bg-gray-100 rounded-3xl shadow-2xl p-4 sm:p-8">
-          {/* Product Image */}
-          <div className="flex-1 flex items-center justify-center">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full max-w-xs aspect-square object-cover rounded-2xl shadow-xl transition-transform duration-300 hover:scale-105"
-            />
-          </div>
-
+      <main className="container mx-auto px-2 sm:px-4 py-6">
+        <section className="flex flex-col-reverse lg:flex-row gap-8 bg-white/80 dark:bg-gray-900/70 rounded-3xl shadow-md p-4 sm:p-8">
           {/* Product Info */}
           <div className="flex-1 flex flex-col justify-center gap-6">
             <div>
@@ -71,9 +63,9 @@ export default function ProductDetail() {
             <p className="text-base sm:text-lg text-gray-700 mb-4">{product.description}</p>
 
             {/* Specifications */}
-            <Card className="border-none shadow-none bg-gray-50 p-0">
+            <Card className="border-none shadow-none bg-gray-50 dark:bg-gray-800 p-0">
               <CardContent className="p-0">
-                <h3 className="font-bold mb-3 text-gray-700 text-lg">Specifications</h3>
+                <h3 className="font-bold mb-3 text-gray-700 dark:text-gray-200 text-lg">Specifications</h3>
                 <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
                   <div className="flex items-center gap-2">
                     <dt className="flex items-center gap-1 text-gray-600 font-medium">
@@ -146,7 +138,16 @@ export default function ProductDetail() {
               </Button>
             </div>
           </div>
-        </div>
+
+          {/* Product Image */}
+          <div className="flex-1 flex items-center justify-center mb-8 lg:mb-0">
+            <img
+              src={product.image}
+              alt={product.name}
+              className="w-full max-w-xs aspect-square object-cover rounded-2xl shadow-xl transition-transform duration-300 hover:scale-105"
+            />
+          </div>
+        </section>
 
         {/* Similar Products */}
         {similarProducts.length > 0 && (
@@ -156,7 +157,7 @@ export default function ProductDetail() {
               {similarProducts.map((similarProduct) => (
                 <Card
                   key={similarProduct.id}
-                  className="overflow-hidden hover:shadow-xl transition-shadow bg-gray-100 border border-gray-200 rounded-2xl"
+                  className="overflow-hidden hover:shadow-xl transition-shadow bg-white/80 dark:bg-gray-900/70 border border-gray-200 dark:border-gray-700 rounded-2xl"
                 >
                   <div className="aspect-video relative overflow-hidden bg-gray-200">
                     <img
@@ -173,6 +174,7 @@ export default function ProductDetail() {
                     <Button
                       size="sm"
                       className="w-full mt-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold"
+                      onClick={() => navigate(`/product/${similarProduct.id}`)}
                     >
                       View Details
                     </Button>
@@ -183,7 +185,6 @@ export default function ProductDetail() {
           </section>
         )}
       </main>
-
       <Footer />
     </div>
   );
