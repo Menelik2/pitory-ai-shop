@@ -6,7 +6,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Product, categories } from "@/data/mockProducts";
+import { categories } from "@/data/mockProducts";
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  category: string;
+  price: number;
+  detailed_specs: any;
+  stock_quantity: number;
+  image_urls: string[];
+  description: string;
+}
 
 interface ProductFormProps {
   product?: Product;
@@ -21,19 +33,38 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     brand: product?.brand || "",
     category: product?.category || "",
     price: product?.price || 0,
-    cpu: product?.cpu || "",
-    generation: product?.generation || "",
-    ram: product?.ram || "",
-    storage: product?.storage || "",
-    display: product?.display || "",
+    cpu: product?.detailed_specs?.cpu || "",
+    generation: product?.detailed_specs?.generation || "",
+    ram: product?.detailed_specs?.ram || "",
+    storage: product?.detailed_specs?.storage || "",
+    display: product?.detailed_specs?.display || "",
     description: product?.description || "",
-    image: product?.image || "https://placehold.co/600x400.png",
-    stock: product?.stock || 0,
+    image: product?.image_urls?.[0] || "https://placehold.co/600x400.png",
+    stock: product?.stock_quantity || 0,
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    // Transform form data to match Supabase schema
+    const productData = {
+      name: formData.name,
+      brand: formData.brand,
+      category: formData.category,
+      price: formData.price,
+      description: formData.description,
+      stock_quantity: formData.stock,
+      image_urls: [formData.image],
+      detailed_specs: {
+        cpu: formData.cpu,
+        generation: formData.generation,
+        ram: formData.ram,
+        storage: formData.storage,
+        display: formData.display,
+      },
+    };
+    
+    onSave(productData);
     onClose();
   };
 
