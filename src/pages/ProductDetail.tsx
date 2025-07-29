@@ -51,8 +51,8 @@ export default function ProductDetail() {
               src={product.image}
               alt={product.name}
               
-             className= "w-full h-auto max-h-[300px] sm:max-h-[400px] md:max-h-[500px] object-contain"
-              loading="lazy"
+             className= "max-h-[300px] sm:max-h-[400px] md:max-h-[500px]"
+             
             />
           </div>
           
