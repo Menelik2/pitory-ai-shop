@@ -49,12 +49,6 @@ export default function ProductDetail() {
           <div className="w-full max-w-md mx-auto aspect-square bg-card rounded-lg overflow-hidden flex items-center justify-center">
             <img
               src={product.image}
-              srcSet={`
-                ${product.image.replace(".jpg", "-sm.jpg")} 480w,
-                ${product.image.replace(".jpg", "-md.jpg")} 768w,
-                ${product.image} 1200w
-              `}
-              sizes="(max-width: 640px) 480px, (max-width: 1024px) 768px, 1200px"
               alt={product.name}
               className="w-full h-auto max-h-[300px] sm:max-h-[400px] md:max-h-[500px] object-contain"
               loading="lazy"
@@ -140,12 +134,6 @@ export default function ProductDetail() {
                   <div className="aspect-video relative overflow-hidden">
                     <img
                       src={similarProduct.image}
-                      srcSet={`
-                        ${similarProduct.image.replace(".jpg", "-sm.jpg")} 480w,
-                        ${similarProduct.image.replace(".jpg", "-md.jpg")} 768w,
-                        ${similarProduct.image} 1200w
-                      `}
-                      sizes="(max-width: 640px) 480px, (max-width: 1024px) 768px, 1200px"
                       alt={similarProduct.name}
                       className="w-full h-full object-cover"
                       loading="lazy"
