@@ -45,140 +45,135 @@ export default function ProductDetail() {
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
 
       <main className="container mx-auto px-2 sm:px-4 py-6">
-        <section className="flex flex-col-reverse lg:flex-row gap-8 bg-white/90 rounded-3xl shadow-lg p-4 sm:p-8">
-          {/* Product Info */}
-          <div className="flex-1 flex flex-col justify-center gap-6">
-            <div>
-              <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold bg-indigo-100 text-indigo-600">
-                {product.category}
-              </Badge>
-              <p className="text-sm text-gray-500 mb-2">Brand: {product.brand}</p>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-gray-900 mb-2">
-                {product.name}
-              </h1>
-              <div className="text-2xl sm:text-4xl font-bold text-indigo-600 mb-4">
-                ${product.price.toLocaleString()}
+        {/* Main Product Card */}
+        <div className="flex flex-col lg:flex-row items-center gap-8 mb-12">
+          <Card className="w-full lg:w-1/2 p-6 bg-white rounded-3xl shadow-xl hover:shadow-2xl transition-all duration-300">
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-shrink-0 flex justify-center items-center">
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-64 h-64 object-cover rounded-2xl shadow-md hover:scale-105 transition-all duration-300"
+                />
+              </div>
+              <div className="flex-1 flex flex-col justify-between">
+                <div>
+                  <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold bg-indigo-100 text-indigo-600">
+                    {product.category}
+                  </Badge>
+                  <p className="text-sm text-gray-500 mb-2">Brand: {product.brand}</p>
+                  <h1 className="text-3xl font-extrabold text-gray-900 mb-2">{product.name}</h1>
+                  <div className="text-2xl font-bold text-indigo-600 mb-4">
+                    ${product.price.toLocaleString()}
+                  </div>
+                  <p className="text-base text-gray-700 mb-4">{product.description}</p>
+
+                  {/* Specifications */}
+                  <div className="bg-[#f5f6fa] rounded-xl p-4 mb-4">
+                    <h3 className="font-bold mb-2 text-gray-700 text-lg">Specifications</h3>
+                    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-2 gap-x-8">
+                      <div className="flex items-center gap-2">
+                        <Cpu className="w-5 h-5 text-indigo-500" />
+                        <span className="font-medium text-gray-600">CPU:</span>
+                        <span className="ml-1 text-gray-800">{product.cpu}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <MemoryStick className="w-5 h-5 text-purple-500" />
+                        <span className="font-medium text-gray-600">RAM:</span>
+                        <span className="ml-1 text-gray-800">{product.ram}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <HardDrive className="w-5 h-5 text-teal-500" />
+                        <span className="font-medium text-gray-600">Storage:</span>
+                        <span className="ml-1 text-gray-800">{product.storage}</span>
+                      </div>
+                      {product.display && (
+                        <div className="flex items-center gap-2">
+                          <Monitor className="w-5 h-5 text-pink-500" />
+                          <span className="font-medium text-gray-600">Display:</span>
+                          <span className="ml-1 text-gray-800">{product.display}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-600">Generation:</span>
+                        <span className="ml-1 text-gray-800">{product.generation}</span>
+                      </div>
+                    </dl>
+                  </div>
+                </div>
+                {/* Quantity and Add to Cart */}
+                <div>
+                  <div className="flex items-center gap-4 mb-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      aria-label="Decrease quantity"
+                      className="rounded-full"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <span className="text-xl font-semibold w-10 text-center">{quantity}</span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      aria-label="Increase quantity"
+                      className="rounded-full"
+                      onClick={() => setQuantity(quantity + 1)}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={handleAddToCart}
+                    className="w-full text-lg py-3 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg"
+                  >
+                    <ShoppingCart className="mr-2 h-5 w-5" />
+                    Add to Cart
+                  </Button>
+                </div>
               </div>
             </div>
-            <p className="text-base sm:text-lg text-gray-700 mb-4">{product.description}</p>
+          </Card>
+        </div>
 
-            {/* Specifications */}
-            <Card className="border-none shadow-none bg-[#f5f6fa] p-0">
-              <CardContent className="p-0">
-                <h3 className="font-bold mb-3 text-gray-700 text-lg">Specifications</h3>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8">
-                  <div className="flex items-center gap-2">
-                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
-                      <Cpu className="w-5 h-5 text-indigo-500" />
-                      CPU
-                    </dt>
-                    <dd className="ml-2 text-gray-800">{product.cpu}</dd>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
-                      <MemoryStick className="w-5 h-5 text-purple-500" />
-                      RAM
-                    </dt>
-                    <dd className="ml-2 text-gray-800">{product.ram}</dd>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <dt className="flex items-center gap-1 text-gray-600 font-medium">
-                      <HardDrive className="w-5 h-5 text-teal-500" />
-                      Storage
-                    </dt>
-                    <dd className="ml-2 text-gray-800">{product.storage}</dd>
-                  </div>
-                  {product.display && (
-                    <div className="flex items-center gap-2">
-                      <dt className="flex items-center gap-1 text-gray-600 font-medium">
-                        <Monitor className="w-5 h-5 text-pink-500" />
-                        Display
-                      </dt>
-                      <dd className="ml-2 text-gray-800">{product.display}</dd>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2">
-                    <dt className="text-gray-600 font-medium">Generation</dt>
-                    <dd className="ml-2 text-gray-800">{product.generation}</dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
-
-            {/* Add to Cart */}
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-start gap-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Decrease quantity"
-                  className="rounded-full"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="text-xl font-semibold w-10 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  aria-label="Increase quantity"
-                  className="rounded-full"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-
-              <Button
-                onClick={handleAddToCart}
-                className="w-full text-lg py-4 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 shadow-lg transition"
-              >
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Add to Cart
-              </Button>
-            </div>
-          </div>
-
-          {/* Product Image */}
-          <div className="flex-1 flex items-center justify-center mb-8 lg:mb-0">
-            <img
-              src={product.image}
-              alt={product.name}
-              className="w-full max-w-xs aspect-square object-cover rounded-2xl shadow-xl transition-transform duration-300 hover:scale-105"
-            />
-          </div>
-        </section>
-
-        {/* Similar Products */}
+        {/* Similar Products Card Grid */}
         {similarProducts.length > 0 && (
-          <section className="mt-12">
+          <section>
             <h2 className="text-2xl font-bold mb-6 text-gray-900">You Might Also Like</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarProducts.map((similarProduct) => (
+            <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              {similarProducts.map((sp) => (
                 <Card
-                  key={similarProduct.id}
-                  className="overflow-hidden hover:shadow-xl transition-shadow bg-[#f5f6fa] border border-gray-200 rounded-2xl"
+                  key={sp.id}
+                  className="group bg-white rounded-3xl shadow-md hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 cursor-pointer"
                 >
-                  <div className="aspect-video relative overflow-hidden bg-gray-200">
-                    <img
-                      src={similarProduct.image}
-                      alt={similarProduct.name}
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <CardContent className="p-4 flex flex-col gap-2">
-                    <h3 className="font-bold text-gray-800">{similarProduct.name}</h3>
-                    <div className="text-lg font-bold text-indigo-600">
-                      ${similarProduct.price.toLocaleString()}
+                  <div
+                    className="flex flex-col items-center p-4"
+                    onClick={() => navigate(`/product/${sp.id}`)}
+                  >
+                    <div className="relative w-full flex justify-center mb-4">
+                      <img
+                        src={sp.image}
+                        alt={sp.name}
+                        className="w-44 h-44 object-cover rounded-xl shadow-md group-hover:scale-105 transition-all duration-300"
+                      />
                     </div>
+                    <Badge className="mb-2 rounded-full px-3 py-1 text-xs font-bold bg-indigo-100 text-indigo-600">
+                      {sp.category}
+                    </Badge>
+                    <h3 className="font-semibold text-lg text-gray-800 mb-1 text-center">{sp.name}</h3>
+                    <div className="text-indigo-600 font-bold text-lg mb-2">${sp.price.toLocaleString()}</div>
                     <Button
                       size="sm"
-                      className="w-full mt-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold"
-                      onClick={() => navigate(`/product/${similarProduct.id}`)}
+                      className="w-full rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/product/${sp.id}`);
+                      }}
                     >
                       View Details
                     </Button>
-                  </CardContent>
+                  </div>
                 </Card>
               ))}
             </div>
