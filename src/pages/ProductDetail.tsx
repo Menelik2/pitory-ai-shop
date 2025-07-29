@@ -1,22 +1,22 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useCart } from "../hooks/useCart";
-import { mockProducts } from "../data/mockProducts";
-import { Header } from "../components/Header";
-import { Footer } from "../components/Footer";
-import { Badge } from "../components/ui/badge";
-import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { toast } from "../components/ui/use-toast";
+import { mockProducts } from "@/data/mockProducts";
+import { useCart } from "@/context/CartContext";
+import { toast } from "@/hooks/use-toast";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
-
+  
   const product = mockProducts.find(p => p.id === id);
-
+  
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -42,20 +42,18 @@ export default function ProductDetail() {
   return (
     <div className="min-h-screen">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
-
+      
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* Product Image */}
-          <div className="w-full max-w-md mx-auto aspect-square bg-card rounded-lg overflow-hidden flex items-center justify-center">
+          <div className="aspect-square bg-card rounded-lg overflow-hidden">
             <img
               src={product.image}
               alt={product.name}
-              className="w-full h-auto max-h-[300px] sm:max-h-[400px] md:max-h-[500px] object-contain"
-              loading="lazy"
-              style={{ objectFit: "contain" }}
+              className="w-full h-full object-cover"
             />
           </div>
-
+          
           {/* Product Info */}
           <div className="space-y-6">
             <div>
@@ -64,9 +62,9 @@ export default function ProductDetail() {
               <h1 className="text-3xl font-bold text-primary mb-4">{product.name}</h1>
               <div className="text-4xl font-bold mb-4">${product.price.toLocaleString()}</div>
             </div>
-
+            
             <p className="text-muted-foreground">{product.description}</p>
-
+            
             {/* Specifications */}
             <Card className="bg-card/80 backdrop-blur">
               <CardContent className="p-6">
@@ -95,7 +93,7 @@ export default function ProductDetail() {
                 </div>
               </CardContent>
             </Card>
-
+            
             {/* Add to Cart */}
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
@@ -115,7 +113,7 @@ export default function ProductDetail() {
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-
+              
               <Button onClick={handleAddToCart} className="w-full text-lg py-6">
                 <ShoppingCart className="mr-2 h-5 w-5" />
                 Add to Cart
@@ -123,7 +121,7 @@ export default function ProductDetail() {
             </div>
           </div>
         </div>
-
+        
         {/* Similar Products */}
         {similarProducts.length > 0 && (
           <section>
@@ -136,7 +134,6 @@ export default function ProductDetail() {
                       src={similarProduct.image}
                       alt={similarProduct.name}
                       className="w-full h-full object-cover"
-                      loading="lazy"
                     />
                   </div>
                   <CardContent className="p-4">
@@ -154,7 +151,7 @@ export default function ProductDetail() {
           </section>
         )}
       </main>
-
+      
       <Footer />
     </div>
   );
