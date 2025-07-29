@@ -33,7 +33,7 @@ export default function ProductDetail() {
         .from('products')
         .select('*')
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (productError) {
         console.error('Error fetching product:', productError);
