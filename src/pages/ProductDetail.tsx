@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import { toast } from "@/hooks/use-toast";
 
 export default function ProductDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const { addToCart, getTotalItems } = useCart();
 
@@ -174,7 +173,6 @@ export default function ProductDetail() {
                     <Button
                       size="sm"
                       className="w-full mt-2 rounded-full bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold"
-                      onClick={() => navigate(`/product/${similarProduct.id}`)}
                     >
                       View Details
                     </Button>
