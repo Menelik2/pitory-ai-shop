@@ -20,7 +20,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   };
 
   return (
-    <Link to={`/product/${product.id}`} className="block">
+    <Link to={`/products/${product.id}`} className="block">
       <Card className="
         max-w-xs min-h-[400px] mx-auto
         rounded-2xl overflow-hidden
