@@ -8,7 +8,8 @@ import { ProductForm } from "./ProductForm";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface Product {
+// Database Product interface
+interface DBProduct {
   id: string;
   name: string;
   brand: string;
@@ -20,9 +21,26 @@ interface Product {
   description: string;
 }
 
+// Form Product interface for compatibility with ProductForm
+interface FormProduct {
+  id: string;
+  name: string;
+  brand: string;
+  category: string;
+  price: number;
+  cpu: string;
+  generation: string;
+  ram: string;
+  storage: string;
+  display?: string;
+  description: string;
+  image: string;
+  stock: number;
+}
+
 export function ProductTable() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | undefined>();
+  const [products, setProducts] = useState<DBProduct[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<FormProduct | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -55,8 +73,24 @@ export function ProductTable() {
     setIsFormOpen(true);
   };
 
-  const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
+  const handleEditProduct = (product: DBProduct) => {
+    // Convert DB product to form product
+    const formProduct: FormProduct = {
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      category: product.category,
+      price: product.price,
+      cpu: product.detailed_specs?.cpu || "",
+      generation: product.detailed_specs?.generation || "",
+      ram: product.detailed_specs?.ram || "",
+      storage: product.detailed_specs?.storage || "",
+      display: product.detailed_specs?.display || "",
+      description: product.description,
+      image: product.image_urls?.[0] || "",
+      stock: product.stock_quantity
+    };
+    setSelectedProduct(formProduct);
     setIsFormOpen(true);
   };
 
@@ -83,13 +117,32 @@ export function ProductTable() {
     }
   };
 
-  const handleSaveProduct = async (productData: any) => {
+  const handleSaveProduct = async (formData: any) => {
     try {
+      // Convert form data to database format
+      const dbData = {
+        name: formData.name,
+        brand: formData.brand,
+        category: formData.category,
+        price: formData.price,
+        description: formData.description,
+        image_urls: [formData.image],
+        stock_quantity: formData.stock,
+        detailed_specs: {
+          cpu: formData.cpu,
+          generation: formData.generation,
+          ram: formData.ram,
+          storage: formData.storage,
+          display: formData.display
+        },
+        slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+      };
+
       if (selectedProduct) {
         // Update existing product
         const { error } = await supabase
           .from('products')
-          .update(productData)
+          .update(dbData)
           .eq('id', selectedProduct.id);
 
         if (error) throw error;
@@ -102,7 +155,7 @@ export function ProductTable() {
         // Add new product
         const { error } = await supabase
           .from('products')
-          .insert([productData]);
+          .insert([dbData]);
 
         if (error) throw error;
         
@@ -160,19 +213,19 @@ export function ProductTable() {
               {products.map((product) => (
                 <TableRow key={product.id}>
                   <TableCell>
-                    <img
-                      src={product.image_urls?.[0] || "https://placehold.co/600x400.png"}
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded"
-                    />
+                     <img
+                       src={product.image_urls?.[0] || "https://placehold.co/600x400.png"}
+                       alt={product.name}
+                       className="w-12 h-12 object-cover rounded"
+                     />
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.brand}</TableCell>
-                  <TableCell>{product.detailed_specs?.cpu || 'N/A'}</TableCell>
-                  <TableCell>{product.detailed_specs?.generation || 'N/A'}</TableCell>
-                  <TableCell>{product.detailed_specs?.ram || 'N/A'}</TableCell>
+                   <TableCell>{product.detailed_specs?.cpu || 'N/A'}</TableCell>
+                   <TableCell>{product.detailed_specs?.generation || 'N/A'}</TableCell>
+                   <TableCell>{product.detailed_specs?.ram || 'N/A'}</TableCell>
                   <TableCell>${product.price.toLocaleString()}</TableCell>
-                  <TableCell>{product.stock_quantity}</TableCell>
+                   <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
                     <div className="flex space-x-2">
                       <Button
