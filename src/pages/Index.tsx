@@ -53,7 +53,7 @@ const Index = () => {
         id: product.id,
         name: product.name,
         brand: product.brand || '',
-        price: product.price / 100, // Convert from cents to dollars
+        price: product.price, // Price is already in dollars
         category: product.category,
         description: product.description || '',
         image: product.image_urls?.[0] || '/placeholder.svg',

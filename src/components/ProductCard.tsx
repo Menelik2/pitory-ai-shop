@@ -2,8 +2,23 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Product } from "@/data/mockProducts";
 import { toast } from "@/hooks/use-toast";
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  category: string;
+  description: string;
+  image: string;
+  stock: number;
+  cpu: string;
+  generation: string;
+  ram: string;
+  storage: string;
+  display: string;
+}
 
 interface ProductCardProps {
   product: Product;
