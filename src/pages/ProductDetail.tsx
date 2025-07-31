@@ -40,8 +40,12 @@ export default function ProductDetail() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* Product Image */}
-          <div className="aspect-square bg-card rounded-lg overflow-hidden">
-            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+          <div className="aspect-[4/3] md:aspect-square bg-card rounded-xl overflow-hidden shadow-tech hover:shadow-hover-tech transition-all duration-500 group">
+            <img 
+              src={product.image} 
+              alt={product.name} 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+            />
           </div>
           
           {/* Product Info */}
