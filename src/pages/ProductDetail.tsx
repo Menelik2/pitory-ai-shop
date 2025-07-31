@@ -9,49 +9,39 @@ import { Minus, Plus, ShoppingCart } from "lucide-react";
 import { mockProducts } from "@/data/mockProducts";
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
-
 export default function ProductDetail() {
-  const { id } = useParams();
+  const {
+    id
+  } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const { addToCart, getTotalItems } = useCart();
-  
+  const {
+    addToCart,
+    getTotalItems
+  } = useCart();
   const product = mockProducts.find(p => p.id === id);
-  
   if (!product) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
+    return <div className="min-h-screen flex items-center justify-center">
         <p className="text-xl">Product not found</p>
-      </div>
-    );
+      </div>;
   }
-
-  const similarProducts = mockProducts
-    .filter(p => p.category === product.category && p.id !== product.id)
-    .slice(0, 4);
-
+  const similarProducts = mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
     }
     toast({
       title: "Added to cart",
-      description: `${quantity} x ${product.name} added to your cart.`,
+      description: `${quantity} x ${product.name} added to your cart.`
     });
   };
-
-  return (
-    <div className="min-h-screen">
+  return <div className="min-h-screen">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
       
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* Product Image */}
           <div className="aspect-square bg-card rounded-lg overflow-hidden">
-            <img
-              src={product.image}
-              alt={product.name}   
-             className="w-full h-full object-cover"
-            />
+            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
           </div>
           
           {/* Product Info */}
@@ -59,7 +49,7 @@ export default function ProductDetail() {
             <div>
               <Badge className="mb-2">{product.category}</Badge>
               <p className="text-sm text-muted-foreground mb-2">Brand: {product.brand}</p>
-              <h1 className="text-3xl font-bold text-primary mb-4">{product.name}</h1>
+              <h1 className="text-3xl font-bold mb-4 text-slate-950">{product.name}</h1>
               <div className="text-4xl font-bold mb-4">${product.price.toLocaleString()}</div>
             </div>
             
@@ -84,12 +74,10 @@ export default function ProductDetail() {
                     <span>💾</span>
                     <span>Storage: {product.storage}</span>
                   </div>
-                  {product.display && (
-                    <div className="flex items-center gap-2">
+                  {product.display && <div className="flex items-center gap-2">
                       <span>🖥️</span>
                       <span>Display: {product.display}</span>
-                    </div>
-                  )}
+                    </div>}
                 </div>
               </CardContent>
             </Card>
@@ -97,19 +85,11 @@ export default function ProductDetail() {
             {/* Add to Cart */}
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                >
+                <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
                   <Minus className="h-4 w-4" />
                 </Button>
                 <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setQuantity(quantity + 1)}
-                >
+                <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
@@ -123,18 +103,12 @@ export default function ProductDetail() {
         </div>
         
         {/* Similar Products */}
-        {similarProducts.length > 0 && (
-          <section>
+        {similarProducts.length > 0 && <section>
             <h2 className="text-2xl font-bold mb-8">You Might Also Like</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarProducts.map((similarProduct) => (
-                <Card key={similarProduct.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-card/80 backdrop-blur">
+              {similarProducts.map(similarProduct => <Card key={similarProduct.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-card/80 backdrop-blur">
                   <div className="aspect-video relative overflow-hidden">
-                    <img
-                      src={similarProduct.image}
-                      alt={similarProduct.name}
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={similarProduct.image} alt={similarProduct.name} className="w-full h-full object-cover" />
                   </div>
                   <CardContent className="p-4">
                     <h3 className="font-semibold mb-2">{similarProduct.name}</h3>
@@ -145,14 +119,11 @@ export default function ProductDetail() {
                       View Details
                     </Button>
                   </CardContent>
-                </Card>
-              ))}
+                </Card>)}
             </div>
-          </section>
-        )}
+          </section>}
       </main>
       
       <Footer />
-    </div>
-  );
+    </div>;
 }
