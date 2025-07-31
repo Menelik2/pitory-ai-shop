@@ -61,19 +61,16 @@ const Index = () => {
       <main>
         <Hero />
         
-        <div className="container mx-auto px-4 py-8">
-          <ProductFilters
-            searchQuery={searchQuery}
-            selectedCategory={selectedCategory}
-            sortBy={sortBy}
-            onSearchChange={setSearchQuery}
-            onCategoryChange={setSelectedCategory}
-            onSortChange={setSortBy}
-          />
-        </div>
-        
         <section className="py-16 px-4">
           <div className="container mx-auto">
+            <ProductFilters
+              searchQuery={searchQuery}
+              selectedCategory={selectedCategory}
+              sortBy={sortBy}
+              onSearchChange={setSearchQuery}
+              onCategoryChange={setSelectedCategory}
+              onSortChange={setSortBy}
+            />
             <h2 className="text-3xl font-bold text-center mb-12 text-gradient">Featured Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
               {filteredAndSortedProducts.map((product) => (
