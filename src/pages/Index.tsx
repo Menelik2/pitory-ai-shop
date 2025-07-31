@@ -1,22 +1,84 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
 import { PCBuilderAssistant } from "@/components/PCBuilderAssistant";
 import { Footer } from "@/components/Footer";
-import { mockProducts, Product } from "@/data/mockProducts";
 import { useCart } from "@/context/CartContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  category: string;
+  description: string;
+  image: string;
+  stock: number;
+  cpu: string;
+  generation: string;
+  ram: string;
+  storage: string;
+  display: string;
+}
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState("name-asc");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const { addToCart, getTotalItems } = useCart();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const fetchProducts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Convert Supabase data to our Product interface
+      const convertedProducts: Product[] = (data || []).map((product) => ({
+        id: product.id,
+        name: product.name,
+        brand: product.brand || '',
+        price: product.price / 100, // Convert from cents to dollars
+        category: product.category,
+        description: product.description || '',
+        image: product.image_urls?.[0] || '/placeholder.svg',
+        stock: product.stock_quantity || 0,
+        cpu: (product.detailed_specs as any)?.cpu || '',
+        generation: (product.detailed_specs as any)?.generation || '',
+        ram: (product.detailed_specs as any)?.ram || '',
+        storage: (product.detailed_specs as any)?.storage || '',
+        display: (product.detailed_specs as any)?.display || ''
+      }));
+
+      setProducts(convertedProducts);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch products",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredAndSortedProducts = useMemo(() => {
-    let filtered = mockProducts;
+    let filtered = products;
 
     // Filter by search query
     if (searchQuery) {
