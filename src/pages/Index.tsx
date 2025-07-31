@@ -134,22 +134,30 @@ const Index = () => {
               onSortChange={setSortBy}
             />
             <h2 className="text-3xl font-bold text-center mb-12 text-gradient">Featured Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {filteredAndSortedProducts.map((product) => (
-                <ProductCard 
-                  key={product.id} 
-                  product={product} 
-                  onAddToCart={addToCart} 
-                />
-              ))}
-            </div>
-            
-            {filteredAndSortedProducts.length === 0 && (
+            {loading ? (
               <div className="text-center py-12">
-                <p className="text-xl text-muted-foreground">
-                  No products found matching your criteria.
-                </p>
+                <p className="text-xl text-muted-foreground">Loading products...</p>
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                  {filteredAndSortedProducts.map((product) => (
+                    <ProductCard 
+                      key={product.id} 
+                      product={product} 
+                      onAddToCart={addToCart} 
+                    />
+                  ))}
+                </div>
+                
+                {!loading && filteredAndSortedProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-xl text-muted-foreground">
+                      No products found matching your criteria.
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </section>
