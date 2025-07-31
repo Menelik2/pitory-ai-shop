@@ -114,7 +114,7 @@ const Index = () => {
     }
 
     return filtered;
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory, sortBy, products]);
 
   return (
     <div className="min-h-screen">
