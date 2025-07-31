@@ -61,6 +61,17 @@ const Index = () => {
       <main>
         <Hero />
         
+        <div className="container mx-auto px-4 py-8">
+          <ProductFilters
+            searchQuery={searchQuery}
+            selectedCategory={selectedCategory}
+            sortBy={sortBy}
+            onSearchChange={setSearchQuery}
+            onCategoryChange={setSelectedCategory}
+            onSortChange={setSortBy}
+          />
+        </div>
+        
         <section className="py-16 px-4">
           <div className="container mx-auto">
             <h2 className="text-3xl font-bold text-center mb-12 text-gradient">Featured Products</h2>
@@ -83,15 +94,6 @@ const Index = () => {
             )}
           </div>
         </section>
-
-        <div className="container mx-auto px-4 py-8">
-          <ProductFilters
-            selectedCategory={selectedCategory}
-            sortBy={sortBy}
-            onCategoryChange={setSelectedCategory}
-            onSortChange={setSortBy}
-          />
-        </div>
         
         <PCBuilderAssistant />
       </main>
