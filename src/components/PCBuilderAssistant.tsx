@@ -9,5 +9,15 @@ export function PCBuilderAssistant() {
     const searchLower = search.toLowerCase();
     return product.cpu.toLowerCase().includes(searchLower) || product.ram.toLowerCase().includes(searchLower) || product.generation.toLowerCase().includes(searchLower) || product.brand.toLowerCase().includes(searchLower) || product.price.toString().includes(searchLower);
   }) : [];
-  return;
+
+  return (
+    <Card className="mx-auto max-w-4xl mb-8">
+      <CardHeader>
+        <CardTitle>PC Builder Assistant</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p>PC Builder functionality coming soon...</p>
+      </CardContent>
+    </Card>
+  );
 }
