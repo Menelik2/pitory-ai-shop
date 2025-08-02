@@ -133,7 +133,7 @@ const Index = () => {
               onCategoryChange={setSelectedCategory}
               onSortChange={setSortBy}
             />
-            <h2 className="text-3xl font-bold text-center mb-12 text-gradient">Featured Products</h2>
+            <h2 className="text-3xl font-bold text-center mb-12 text-featured">Featured Products</h2>
             {loading ? (
               <div className="text-center py-12">
                 <p className="text-xl text-muted-foreground">Loading products...</p>

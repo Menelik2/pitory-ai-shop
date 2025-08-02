@@ -49,6 +49,9 @@ All colors MUST be HSL.
     --shadow-card: 0 12px 40px -8px hsl(263 70% 50.4% / 0.15);
     --shadow-hover: 0 25px 80px -12px hsl(263 70% 50.4% / 0.3);
     --border-gradient: linear-gradient(135deg, hsl(263 70% 50.4% / 0.3), hsl(270 80% 40% / 0.2));
+    
+    /* Featured Products color */
+    --featured-color: 35 85% 50%;
 
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -100,6 +103,10 @@ All colors MUST be HSL.
 
   .text-gradient {
     @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+  }
+
+  .text-featured {
+    color: hsl(var(--featured-color));
   }
 
   .border-gradient {

@@ -107,4 +107,4 @@ export const mockProducts: Product[] = [
   }
 ];
 
-export const categories = ["All", "Gaming", "Work", "Creative", "General Use"];
+export const categories = ["All", "Desktop", "Laptop", "Networking", "Accessories", "Printers"];
