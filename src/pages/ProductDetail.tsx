@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -6,25 +6,117 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Minus, Plus, ShoppingCart } from "lucide-react";
-import { mockProducts } from "@/data/mockProducts";
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Product {
+  id: string;
+  name: string;
+  brand: string;
+  price: number;
+  category: string;
+  description: string;
+  image: string;
+  stock: number;
+  cpu: string;
+  generation: string;
+  ram: string;
+  storage: string;
+  display: string;
+}
 export default function ProductDetail() {
-  const {
-    id
-  } = useParams();
+  const { id } = useParams();
   const [quantity, setQuantity] = useState(1);
-  const {
-    addToCart,
-    getTotalItems
-  } = useCart();
-  const product = mockProducts.find(p => p.id === id);
-  if (!product) {
-    return <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl">Product not found</p>
-      </div>;
+  const [product, setProduct] = useState<Product | null>(null);
+  const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { addToCart, getTotalItems } = useCart();
+
+  useEffect(() => {
+    fetchProduct();
+  }, [id]);
+
+  const fetchProduct = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        const convertedProduct: Product = {
+          id: data.id,
+          name: data.name,
+          brand: data.brand || '',
+          price: data.price,
+          category: data.category,
+          description: data.description || '',
+          image: data.image_urls?.[0] || '/placeholder.svg',
+          stock: data.stock_quantity || 0,
+          cpu: (data.detailed_specs as any)?.cpu || '',
+          generation: (data.detailed_specs as any)?.generation || '',
+          ram: (data.detailed_specs as any)?.ram || '',
+          storage: (data.detailed_specs as any)?.storage || '',
+          display: (data.detailed_specs as any)?.display || ''
+        };
+        
+        setProduct(convertedProduct);
+        
+        // Fetch similar products
+        const { data: similarData } = await supabase
+          .from('products')
+          .select('*')
+          .eq('category', data.category)
+          .neq('id', id)
+          .limit(4);
+
+        if (similarData) {
+          const convertedSimilar: Product[] = similarData.map((item) => ({
+            id: item.id,
+            name: item.name,
+            brand: item.brand || '',
+            price: item.price,
+            category: item.category,
+            description: item.description || '',
+            image: item.image_urls?.[0] || '/placeholder.svg',
+            stock: item.stock_quantity || 0,
+            cpu: (item.detailed_specs as any)?.cpu || '',
+            generation: (item.detailed_specs as any)?.generation || '',
+            ram: (item.detailed_specs as any)?.ram || '',
+            storage: (item.detailed_specs as any)?.storage || '',
+            display: (item.detailed_specs as any)?.display || ''
+          }));
+          setSimilarProducts(convertedSimilar);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
-  const similarProducts = mockProducts.filter(p => p.category === product.category && p.id !== product.id).slice(0, 4);
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl">Product not found</p>
+      </div>
+    );
+  }
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
       addToCart(product);
