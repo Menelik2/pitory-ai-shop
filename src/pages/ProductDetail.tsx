@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -27,6 +27,7 @@ interface Product {
 }
 export default function ProductDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
@@ -211,7 +212,7 @@ export default function ProductDetail() {
                     <div className="text-lg font-bold text-primary mb-2">
                       ${similarProduct.price.toLocaleString()}
                     </div>
-                    <Button size="sm" className="w-full">
+                    <Button size="sm" className="w-full" onClick={() => navigate(`/products/${similarProduct.id}`)}>
                       View Details
                     </Button>
                   </CardContent>
