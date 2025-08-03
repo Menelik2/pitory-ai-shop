@@ -133,6 +133,27 @@ export type Database = {
         }
         Relationships: []
       }
+      product_comments: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          product_id: string
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          product_id: string
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          product_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           brand: string | null

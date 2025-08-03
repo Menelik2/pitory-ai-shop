@@ -5,7 +5,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Minus, Plus, ShoppingCart, Send } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,17 +26,27 @@ interface Product {
   storage: string;
   display: string;
 }
+interface Comment {
+  id: string;
+  comment: string;
+  created_at: string;
+}
+
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [product, setProduct] = useState<Product | null>(null);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
+  const [submittingComment, setSubmittingComment] = useState(false);
   const { addToCart, getTotalItems } = useCart();
 
   useEffect(() => {
     fetchProduct();
+    fetchComments();
   }, [id]);
 
   const fetchProduct = async () => {
@@ -103,6 +114,55 @@ export default function ProductDetail() {
     }
   };
 
+  const fetchComments = async () => {
+    if (!id) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('product_comments')
+        .select('*')
+        .eq('product_id', id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      if (data) setComments(data);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const handleSubmitComment = async () => {
+    if (!newComment.trim() || !id) return;
+    
+    setSubmittingComment(true);
+    try {
+      const { error } = await supabase
+        .from('product_comments')
+        .insert({
+          product_id: id,
+          comment: newComment.trim()
+        });
+
+      if (error) throw error;
+      
+      setNewComment("");
+      fetchComments();
+      toast({
+        title: "Comment added",
+        description: "Your comment has been posted successfully!"
+      });
+    } catch (error) {
+      console.error('Error submitting comment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to post comment. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -133,7 +193,7 @@ export default function ProductDetail() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
           {/* Product Image */}
-          <div className="aspect-[4/3] md:aspect-square bg-card rounded-xl overflow-hidden shadow-tech hover:shadow-hover-tech transition-all duration-500 group">
+          <div className="w-80 h-80 bg-card rounded-xl overflow-hidden shadow-tech hover:shadow-hover-tech transition-all duration-500 group mx-auto lg:mx-0">
             <img 
               src={product.image} 
               alt={product.name} 
@@ -199,6 +259,62 @@ export default function ProductDetail() {
           </div>
         </div>
         
+        {/* Comments Section */}
+        <section className="mb-16">
+          <h2 className="text-2xl font-bold mb-8">Customer Comments</h2>
+          
+          {/* Add Comment */}
+          <Card className="mb-8">
+            <CardContent className="p-6">
+              <h3 className="font-semibold mb-4">Leave a Comment</h3>
+              <div className="space-y-4">
+                <Textarea
+                  placeholder="Share your thoughts about this product..."
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="min-h-[100px]"
+                />
+                <Button 
+                  onClick={handleSubmitComment}
+                  disabled={!newComment.trim() || submittingComment}
+                  className="w-full sm:w-auto"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  {submittingComment ? "Posting..." : "Post Comment"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Comments List */}
+          <div className="space-y-4">
+            {comments.length === 0 ? (
+              <Card>
+                <CardContent className="p-6 text-center text-muted-foreground">
+                  No comments yet. Be the first to share your thoughts!
+                </CardContent>
+              </Card>
+            ) : (
+              comments.map((comment) => (
+                <Card key={comment.id}>
+                  <CardContent className="p-6">
+                    <p className="text-foreground mb-2">{comment.comment}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(comment.created_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
+        </section>
+
         {/* Similar Products */}
         {similarProducts.length > 0 && <section>
             <h2 className="text-2xl font-bold mb-8">You Might Also Like</h2>
