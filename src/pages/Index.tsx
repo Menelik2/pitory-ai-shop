@@ -5,7 +5,7 @@ import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
 import { MobileCategoryFilter } from "@/components/MobileCategoryFilter";
-import { MobileBottomNav } from "@/components/MobileBottomNav";
+
 import { PCBuilderAssistant } from "@/components/PCBuilderAssistant";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
@@ -129,7 +129,7 @@ const Index = () => {
   }, [searchQuery, selectedCategory, sortBy, products]);
 
   return (
-    <div className="min-h-screen pb-16 md:pb-0">
+    <div className="min-h-screen">
       <Header cartItemCount={getTotalItems()} onSearch={setSearchQuery} />
       
       <main>
@@ -137,6 +137,8 @@ const Index = () => {
         
         <section className="py-16 px-4">
           <div className="container mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-12 text-featured">Featured Products</h2>
+            
             <ProductFilters
               searchQuery={searchQuery}
               selectedCategory={selectedCategory}
@@ -145,7 +147,6 @@ const Index = () => {
               onCategoryChange={setSelectedCategory}
               onSortChange={setSortBy}
             />
-            <h2 className="text-3xl font-bold text-center mb-12 text-featured">Featured Products</h2>
             
             {/* Mobile Category Filter - After Featured Products */}
             <MobileCategoryFilter
@@ -185,7 +186,6 @@ const Index = () => {
       </main>
       
       <Footer />
-      <MobileBottomNav />
     </div>
   );
 };
