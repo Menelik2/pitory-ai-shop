@@ -6,7 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Minus, Plus, ShoppingCart, Send } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Minus, Plus, ShoppingCart, Send, Star, Heart, Share2, Zap, Monitor, HardDrive, Cpu, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +32,7 @@ interface Product {
 interface Comment {
   id: string;
   comment: string;
+  user_name: string;
   created_at: string;
 }
 
@@ -40,8 +44,11 @@ export default function ProductDetail() {
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [userName, setUserName] = useState("");
   const [loading, setLoading] = useState(true);
   const [submittingComment, setSubmittingComment] = useState(false);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { addToCart, getTotalItems } = useCart();
 
   useEffect(() => {
@@ -132,7 +139,7 @@ export default function ProductDetail() {
   };
 
   const handleSubmitComment = async () => {
-    if (!newComment.trim() || !id) return;
+    if (!newComment.trim() || !userName.trim() || !id) return;
     
     setSubmittingComment(true);
     try {
@@ -140,12 +147,14 @@ export default function ProductDetail() {
         .from('product_comments')
         .insert({
           product_id: id,
-          comment: newComment.trim()
+          comment: newComment.trim(),
+          user_name: userName.trim()
         });
 
       if (error) throw error;
       
       setNewComment("");
+      setUserName("");
       fetchComments();
       toast({
         title: "Comment added",
@@ -160,6 +169,22 @@ export default function ProductDetail() {
       });
     } finally {
       setSubmittingComment(false);
+    }
+  };
+
+  const handleShare = () => {
+    if (navigator.share && product) {
+      navigator.share({
+        title: product.name,
+        text: `Check out this ${product.name}`,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "Product link has been copied to clipboard."
+      });
     }
   };
 
@@ -187,127 +212,305 @@ export default function ProductDetail() {
       description: `${quantity} x ${product.name} added to your cart.`
     });
   };
-  return <div className="min-h-screen">
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
       
       <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-          {/* Product Image */}
-          <div className="w-80 h-80 bg-card rounded-xl overflow-hidden shadow-tech hover:shadow-hover-tech transition-all duration-500 group mx-auto lg:mx-0">
-            <img 
-              src={product.image} 
-              alt={product.name} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
-            />
+        {/* Product Details */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
+          {/* Product Images */}
+          <div className="space-y-4">
+            <div className="relative group">
+              <div className="aspect-square bg-card rounded-2xl overflow-hidden shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-700">
+                <img 
+                  src={product.image} 
+                  alt={product.name} 
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                />
+                {/* Image Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </div>
+            </div>
           </div>
           
           {/* Product Info */}
-          <div className="space-y-6">
-            <div>
-              <Badge className="mb-2">{product.category}</Badge>
-              <p className="text-sm text-muted-foreground mb-2">Brand: {product.brand}</p>
-              <h1 className="text-3xl font-bold mb-4 text-slate-950">{product.name}</h1>
-              <div className="text-4xl font-bold mb-4">${product.price.toLocaleString()}</div>
+          <div className="space-y-8 animate-fade-in">
+            {/* Header Section */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <Badge variant="secondary" className="hover-scale">{product.category}</Badge>
+                <Badge variant="outline" className="hover-scale">{product.brand}</Badge>
+              </div>
+              
+              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent leading-tight">
+                {product.name}
+              </h1>
+              
+              <div className="flex items-baseline gap-4">
+                <div className="text-5xl font-bold text-primary">
+                  ${product.price.toLocaleString()}
+                </div>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <Star className="h-4 w-4 text-muted" />
+                  <span className="ml-2 text-sm">(4.2/5)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => setIsFavorited(!isFavorited)}
+                className="hover-scale"
+              >
+                <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={handleShare}
+                className="hover-scale"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
             </div>
             
-            <p className="text-muted-foreground">{product.description}</p>
-            
-            {/* Specifications */}
-            <Card className="bg-card/80 backdrop-blur">
+            {/* Product Description */}
+            <Card className="bg-card/60 backdrop-blur-sm border-border/50">
               <CardContent className="p-6">
-                <h3 className="font-bold mb-4 flex items-center gap-2">
-                  <span>📋</span> CPU: {product.cpu}
-                </h3>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <span>⚡</span>
-                    <span>Generation: {product.generation}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>🧠</span>
-                    <span>RAM: {product.ram}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span>💾</span>
-                    <span>Storage: {product.storage}</span>
-                  </div>
-                  {product.display && <div className="flex items-center gap-2">
-                      <span>🖥️</span>
-                      <span>Display: {product.display}</span>
-                    </div>}
-                </div>
+                <p className="text-muted-foreground leading-relaxed">{product.description}</p>
               </CardContent>
             </Card>
             
-            {/* Add to Cart */}
-            <div className="space-y-4">
-              <div className="flex items-center space-x-4">
-                <Button variant="outline" size="sm" onClick={() => setQuantity(Math.max(1, quantity - 1))}>
-                  <Minus className="h-4 w-4" />
-                </Button>
-                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
-                <Button variant="outline" size="sm" onClick={() => setQuantity(quantity + 1)}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
+            {/* Specifications Tabs */}
+            <Tabs defaultValue="specs" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="specs">Specifications</TabsTrigger>
+                <TabsTrigger value="features">Key Features</TabsTrigger>
+              </TabsList>
               
-              <Button onClick={handleAddToCart} className="w-full text-lg py-6">
-                <ShoppingCart className="mr-2 h-5 w-5" />
-                Add to Cart
-              </Button>
-            </div>
+              <TabsContent value="specs" className="mt-6">
+                <Card className="bg-gradient-to-br from-card via-card to-muted/10 backdrop-blur border-border/50">
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <Cpu className="h-5 w-5 text-primary" />
+                        <div>
+                          <div className="font-medium">Processor</div>
+                          <div className="text-sm text-muted-foreground">{product.cpu}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <Zap className="h-5 w-5 text-primary" />
+                        <div>
+                          <div className="font-medium">Generation</div>
+                          <div className="text-sm text-muted-foreground">{product.generation}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <HardDrive className="h-5 w-5 text-primary" />
+                        <div>
+                          <div className="font-medium">Memory</div>
+                          <div className="text-sm text-muted-foreground">{product.ram}</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                        <HardDrive className="h-5 w-5 text-primary" />
+                        <div>
+                          <div className="font-medium">Storage</div>
+                          <div className="text-sm text-muted-foreground">{product.storage}</div>
+                        </div>
+                      </div>
+                      
+                      {product.display && (
+                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors sm:col-span-2">
+                          <Monitor className="h-5 w-5 text-primary" />
+                          <div>
+                            <div className="font-medium">Display</div>
+                            <div className="text-sm text-muted-foreground">{product.display}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="features" className="mt-6">
+                <Card className="bg-gradient-to-br from-card via-card to-muted/10 backdrop-blur border-border/50">
+                  <CardContent className="p-6">
+                    <ul className="space-y-3">
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span>High-performance computing for demanding applications</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span>Energy-efficient design for longer battery life</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span>Premium build quality with modern aesthetics</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-primary rounded-full"></div>
+                        <span>Comprehensive warranty and support</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+            
+            {/* Add to Cart Section */}
+            <Card className="bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-primary/20">
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <span className="text-lg font-medium">Quantity</span>
+                    <div className="flex items-center space-x-3">
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        className="hover-scale"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-2xl font-bold w-16 text-center">{quantity}</span>
+                      <Button 
+                        variant="outline" 
+                        size="icon" 
+                        onClick={() => setQuantity(quantity + 1)}
+                        className="hover-scale"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleAddToCart} 
+                    className="w-full text-lg py-6 bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                  >
+                    <ShoppingCart className="mr-3 h-6 w-6" />
+                    Add {quantity} to Cart - ${(product.price * quantity).toLocaleString()}
+                  </Button>
+                  
+                  <div className="text-center text-sm text-muted-foreground">
+                    <span className="inline-flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
         
         {/* Comments Section */}
         <section className="mb-16">
-          <h2 className="text-2xl font-bold mb-8">Customer Comments</h2>
+          <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+            Customer Reviews
+          </h2>
           
           {/* Add Comment */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <h3 className="font-semibold mb-4">Leave a Comment</h3>
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="Share your thoughts about this product..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[100px]"
-                />
+          <Card className="mb-8 bg-gradient-to-br from-card via-card to-muted/5 border-border/50">
+            <CardContent className="p-8">
+              <h3 className="text-xl font-semibold mb-6 flex items-center gap-2">
+                <User className="h-5 w-5 text-primary" />
+                Share Your Experience
+              </h3>
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="userName" className="text-base font-medium">Your Name</Label>
+                  <Input
+                    id="userName"
+                    placeholder="Enter your name"
+                    value={userName}
+                    onChange={(e) => setUserName(e.target.value)}
+                    className="mt-2"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="comment" className="text-base font-medium">Your Review</Label>
+                  <Textarea
+                    id="comment"
+                    placeholder="Share your thoughts about this product..."
+                    value={newComment}
+                    onChange={(e) => setNewComment(e.target.value)}
+                    className="min-h-[120px] mt-2"
+                  />
+                </div>
                 <Button 
                   onClick={handleSubmitComment}
-                  disabled={!newComment.trim() || submittingComment}
-                  className="w-full sm:w-auto"
+                  disabled={!newComment.trim() || !userName.trim() || submittingComment}
+                  className="w-full sm:w-auto bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70"
+                  size="lg"
                 >
-                  <Send className="mr-2 h-4 w-4" />
-                  {submittingComment ? "Posting..." : "Post Comment"}
+                  <Send className="mr-2 h-5 w-5" />
+                  {submittingComment ? "Posting..." : "Post Review"}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Comments List */}
-          <div className="space-y-4">
+          <div className="space-y-6">
             {comments.length === 0 ? (
-              <Card>
-                <CardContent className="p-6 text-center text-muted-foreground">
-                  No comments yet. Be the first to share your thoughts!
+              <Card className="bg-muted/20">
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-3">
+                    <div className="text-6xl">💬</div>
+                    <p className="text-xl text-muted-foreground">No reviews yet</p>
+                    <p className="text-muted-foreground">Be the first to share your thoughts about this product!</p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
-              comments.map((comment) => (
-                <Card key={comment.id}>
+              comments.map((comment, index) => (
+                <Card 
+                  key={comment.id} 
+                  className="bg-gradient-to-br from-card via-card to-muted/5 border-border/50 hover:shadow-lg transition-all duration-300 animate-fade-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <CardContent className="p-6">
-                    <p className="text-foreground mb-2">{comment.comment}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {new Date(comment.created_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </p>
+                    <div className="flex items-start gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/40 rounded-full flex items-center justify-center">
+                        <User className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1 space-y-3">
+                        <div className="flex items-center gap-3">
+                          <h4 className="font-semibold text-lg">{comment.user_name || 'Anonymous'}</h4>
+                          <div className="flex items-center gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-foreground leading-relaxed">{comment.comment}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(comment.created_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </p>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
               ))
@@ -316,27 +519,53 @@ export default function ProductDetail() {
         </section>
 
         {/* Similar Products */}
-        {similarProducts.length > 0 && <section>
-            <h2 className="text-2xl font-bold mb-8">You Might Also Like</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarProducts.map(similarProduct => <Card key={similarProduct.id} className="overflow-hidden hover:shadow-lg transition-shadow bg-card/80 backdrop-blur">
+        {similarProducts.length > 0 && (
+          <section>
+            <h2 className="text-3xl font-bold mb-8 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+              You Might Also Like
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {similarProducts.map((similarProduct, index) => (
+                <Card 
+                  key={similarProduct.id} 
+                  className="group overflow-hidden hover:shadow-2xl transition-all duration-500 bg-gradient-to-br from-card via-card to-muted/10 border-border/50 hover-scale animate-fade-in"
+                  style={{ animationDelay: `${index * 0.1}s` }}
+                >
                   <div className="aspect-video relative overflow-hidden">
-                    <img src={similarProduct.image} alt={similarProduct.name} className="w-full h-full object-cover" />
+                    <img 
+                      src={similarProduct.image} 
+                      alt={similarProduct.name} 
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </div>
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">{similarProduct.name}</h3>
-                    <div className="text-lg font-bold text-primary mb-2">
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
+                        {similarProduct.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{similarProduct.brand}</p>
+                    </div>
+                    <div className="text-2xl font-bold text-primary">
                       ${similarProduct.price.toLocaleString()}
                     </div>
-                    <Button size="sm" className="w-full" onClick={() => navigate(`/products/${similarProduct.id}`)}>
+                    <Button 
+                      size="sm" 
+                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors" 
+                      variant="outline"
+                      onClick={() => navigate(`/products/${similarProduct.id}`)}
+                    >
                       View Details
                     </Button>
                   </CardContent>
-                </Card>)}
+                </Card>
+              ))}
             </div>
-          </section>}
+          </section>
+        )}
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  );
 }
