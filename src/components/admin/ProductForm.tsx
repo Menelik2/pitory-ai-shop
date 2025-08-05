@@ -234,12 +234,12 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
                 type="url"
                 value={formData.image}
                 onChange={(e) => handleChange("image", e.target.value)}
-                placeholder="https://example.com/image.jpg (supports .jpg, .png, .gif, .webp, .svg)"
-                pattern="https?://.*\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff).*"
-                title="Please enter a valid image URL (jpg, png, gif, webp, svg, etc.)"
+                placeholder="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=464..."
+                pattern="https?://.*"
+                title="Please enter a valid image URL"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Supports all common image formats from any domain (Unsplash, Imgur, Google Drive, etc.)
+                Supports all image URLs including Unsplash, Imgur, Google Drive, and direct image links
               </p>
             </div>
 
