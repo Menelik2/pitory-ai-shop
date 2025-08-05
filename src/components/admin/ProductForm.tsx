@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,6 +30,42 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     image: product?.image || "https://placehold.co/600x400.png",
     stock: product?.stock || 0,
   });
+
+  // Update form data whenever product prop changes
+  useEffect(() => {
+    if (product) {
+      setFormData({
+        name: product.name || "",
+        brand: product.brand || "",
+        category: product.category || "",
+        price: product.price || 0,
+        cpu: product.cpu || "",
+        generation: product.generation || "",
+        ram: product.ram || "",
+        storage: product.storage || "",
+        display: product.display || "",
+        description: product.description || "",
+        image: product.image || "https://placehold.co/600x400.png",
+        stock: product.stock || 0,
+      });
+    } else {
+      // Reset form for new product
+      setFormData({
+        name: "",
+        brand: "",
+        category: "",
+        price: 0,
+        cpu: "",
+        generation: "",
+        ram: "",
+        storage: "",
+        display: "",
+        description: "",
+        image: "https://placehold.co/600x400.png",
+        stock: 0,
+      });
+    }
+  }, [product]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
