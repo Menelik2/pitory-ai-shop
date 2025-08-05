@@ -195,10 +195,16 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
               <Label htmlFor="image">Image URL</Label>
               <Input
                 id="image"
+                type="url"
                 value={formData.image}
                 onChange={(e) => handleChange("image", e.target.value)}
-                placeholder="https://placehold.co/600x400.png"
+                placeholder="https://example.com/image.jpg (supports .jpg, .png, .gif, .webp, .svg)"
+                pattern="https?://.*\.(jpg|jpeg|png|gif|webp|svg|bmp|tiff).*"
+                title="Please enter a valid image URL (jpg, png, gif, webp, svg, etc.)"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Supports all common image formats from any domain (Unsplash, Imgur, Google Drive, etc.)
+              </p>
             </div>
 
             <div className="flex justify-end space-x-4 pt-4">
