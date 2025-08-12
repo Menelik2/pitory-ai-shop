@@ -157,6 +157,47 @@ export type Database = {
         }
         Relationships: []
       }
+      product_private_info: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          product_id: string
+          supplier_email: string | null
+          supplier_phone: string | null
+          updated_at: string
+          vendor_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id: string
+          supplier_email?: string | null
+          supplier_phone?: string | null
+          updated_at?: string
+          vendor_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_id?: string
+          supplier_email?: string | null
+          supplier_phone?: string | null
+          updated_at?: string
+          vendor_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_private_info_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           brand: string | null
