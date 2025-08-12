@@ -12,6 +12,7 @@ import Cart from "./pages/Cart";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import { ScrollToTop } from "@/components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -22,9 +23,10 @@ const App = () => (
         <CartProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <div className="pb-16 md:pb-0">
-              <Routes>
+            <BrowserRouter>
+              <ScrollToTop />
+              <div className="pb-16 md:pb-0">
+                <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/products/:id" element={<ProductDetail />} />
                 <Route path="/cart" element={<Cart />} />
