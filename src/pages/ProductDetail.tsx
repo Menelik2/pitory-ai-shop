@@ -22,6 +22,7 @@ interface Product {
   category: string;
   description: string;
   image: string;
+  images: string[];
   stock: number;
   cpu: string;
   generation: string;
@@ -77,6 +78,7 @@ export default function ProductDetail() {
           category: data.category,
           description: data.description || '',
           image: data.image_urls?.[0] || '/placeholder.svg',
+          images: data.image_urls || ['/placeholder.svg'],
           stock: data.stock_quantity || 0,
           cpu: (data.detailed_specs as any)?.cpu || '',
           generation: (data.detailed_specs as any)?.generation || '',
@@ -104,6 +106,7 @@ export default function ProductDetail() {
             category: item.category,
             description: item.description || '',
             image: item.image_urls?.[0] || '/placeholder.svg',
+            images: item.image_urls || ['/placeholder.svg'],
             stock: item.stock_quantity || 0,
             cpu: (item.detailed_specs as any)?.cpu || '',
             generation: (item.detailed_specs as any)?.generation || '',
@@ -221,16 +224,39 @@ export default function ProductDetail() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
           {/* Product Images */}
           <div className="space-y-4">
+            {/* Main Image */}
             <div className="relative group">
               <div className="aspect-square bg-card rounded-2xl overflow-hidden shadow-2xl border border-border/50 hover:shadow-3xl transition-all duration-700">
                 <img 
-                  src={product.image} 
+                  src={product.images[selectedImageIndex]} 
                   alt={product.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
                 />
                 {/* Image Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
+            </div>
+            
+            {/* Thumbnail Gallery */}
+            <div className="grid grid-cols-4 gap-2">
+              {product.images.slice(0, 4).map((image, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedImageIndex(index)}
+                  className={`relative group aspect-square bg-card rounded-lg overflow-hidden border-2 transition-all duration-300 hover:shadow-lg ${
+                    selectedImageIndex === index 
+                      ? 'border-primary ring-2 ring-primary/20' 
+                      : 'border-border/50 hover:border-primary/50'
+                  }`}
+                >
+                  <img 
+                    src={image} 
+                    alt={`${product.name} ${index + 1}`} 
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                  />
+                  <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                </button>
+              ))}
             </div>
           </div>
           
