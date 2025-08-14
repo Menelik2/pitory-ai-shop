@@ -35,6 +35,7 @@ interface FormProduct {
   display?: string;
   description: string;
   image: string;
+  images?: string[];
   stock: number;
 }
 
@@ -88,6 +89,7 @@ export function ProductTable() {
       display: product.detailed_specs?.display || "",
       description: product.description,
       image: product.image_urls?.[0] || "",
+      images: product.image_urls || [""],
       stock: product.stock_quantity
     };
     setSelectedProduct(formProduct);
@@ -126,7 +128,7 @@ export function ProductTable() {
         category: formData.category,
         price: formData.price,
         description: formData.description,
-        image_urls: [formData.image],
+        image_urls: formData.images || [formData.image],
         stock_quantity: formData.stock,
         detailed_specs: {
           cpu: formData.cpu,
