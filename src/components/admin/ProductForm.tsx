@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Plus, Trash2 } from "lucide-react";
 import { Product, categories } from "@/data/mockProducts";
 
 interface ProductFormProps {
@@ -28,6 +29,7 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     display: product?.display || "",
     description: product?.description || "",
     image: product?.image || "https://placehold.co/600x400.png",
+    images: product?.images || ["https://placehold.co/600x400.png"],
     stock: product?.stock || 0,
   });
 
@@ -46,6 +48,7 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
         display: product.display || "",
         description: product.description || "",
         image: product.image || "https://placehold.co/600x400.png",
+        images: product.images || [product.image || "https://placehold.co/600x400.png"],
         stock: product.stock || 0,
       });
     } else {
@@ -62,6 +65,7 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
         display: "",
         description: "",
         image: "https://placehold.co/600x400.png",
+        images: ["https://placehold.co/600x400.png"],
         stock: 0,
       });
     }
@@ -73,8 +77,28 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     onClose();
   };
 
-  const handleChange = (field: string, value: string | number) => {
+  const handleChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleImageChange = (index: number, value: string) => {
+    const newImages = [...formData.images];
+    newImages[index] = value;
+    setFormData(prev => ({ ...prev, images: newImages, image: newImages[0] }));
+  };
+
+  const addImage = () => {
+    setFormData(prev => ({ 
+      ...prev, 
+      images: [...prev.images, "https://placehold.co/600x400.png"] 
+    }));
+  };
+
+  const removeImage = (index: number) => {
+    if (formData.images.length > 1) {
+      const newImages = formData.images.filter((_, i) => i !== index);
+      setFormData(prev => ({ ...prev, images: newImages, image: newImages[0] }));
+    }
   };
 
   return (
@@ -228,18 +252,54 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
             </div>
 
             <div>
-              <Label htmlFor="image">Image URL</Label>
-              <Input
-                id="image"
-                type="url"
-                value={formData.image}
-                onChange={(e) => handleChange("image", e.target.value)}
-                placeholder="https://images.unsplash.com/photo-1525547719571-a2d4ac8945e2?q=80&w=464..."
-                pattern="https?://.*"
-                title="Please enter a valid image URL"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Supports all image URLs including Unsplash, Imgur, Google Drive, and direct image links
+              <div className="flex items-center justify-between mb-2">
+                <Label>Product Images</Label>
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addImage}
+                  className="flex items-center gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Image
+                </Button>
+              </div>
+              <div className="space-y-4">
+                {formData.images.map((imageUrl, index) => (
+                  <div key={index} className="flex gap-2">
+                    <div className="flex-1">
+                      <Input
+                        type="url"
+                        value={imageUrl}
+                        onChange={(e) => handleImageChange(index, e.target.value)}
+                        placeholder="https://images.unsplash.com/photo-..."
+                        pattern="https?://.*"
+                        title="Please enter a valid image URL"
+                      />
+                      {index === 0 && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Main product image (displayed first)
+                        </p>
+                      )}
+                    </div>
+                    {formData.images.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={() => removeImage(index)}
+                        className="shrink-0"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                Add up to 4 images. The first image will be the main product image. 
+                Supports Unsplash, Imgur, Google Drive, and direct image links.
               </p>
             </div>
 
