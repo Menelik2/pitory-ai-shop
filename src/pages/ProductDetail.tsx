@@ -262,56 +262,74 @@ export default function ProductDetail() {
           
           {/* Product Info */}
           <div className="space-y-8 animate-fade-in">
-            {/* Header Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Badge variant="secondary" className="hover-scale">{product.category}</Badge>
-                <Badge variant="outline" className="hover-scale">{product.brand}</Badge>
+            {/* Brand Header */}
+            <div className="space-y-6">
+              {/* Brand Name - Prominent Display */}
+              <div>
+                <h1 className="text-6xl lg:text-7xl font-bold text-gradient mb-2 tracking-tight">
+                  {product.brand}
+                </h1>
+                <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
+                  {product.category}
+                </Badge>
               </div>
               
-              <h1 className="text-4xl lg:text-5xl font-bold bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent leading-tight">
+              {/* Product Name */}
+              <p className="text-xl lg:text-2xl text-muted-foreground font-medium leading-relaxed max-w-2xl">
                 {product.name}
-              </h1>
-              
-              <div className="flex items-baseline gap-4">
-                <div className="text-5xl font-bold text-primary">
+              </p>
+            </div>
+
+            {/* Price and Rating Section */}
+            <div className="space-y-6">
+              {/* Price Display */}
+              <div className="relative">
+                <div className="text-6xl lg:text-7xl font-bold text-gradient mb-2">
                   ${product.price.toLocaleString()}
                 </div>
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                  <Star className="h-4 w-4 text-muted" />
-                  <span className="ml-2 text-sm">(4.2/5)</span>
+                <div className="absolute -top-2 -right-2 w-3 h-3 bg-primary rounded-full animate-pulse shadow-lg glow-primary"></div>
+              </div>
+              
+              {/* Rating */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-muted text-muted" />
                 </div>
+                <span className="text-lg font-medium text-muted-foreground">(4.2/5)</span>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <Button 
                 variant="outline" 
-                size="icon"
+                size="lg"
                 onClick={() => setIsFavorited(!isFavorited)}
-                className="hover-scale"
+                className="glass-effect hover:bg-primary/10 border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
               >
-                <Heart className={`h-4 w-4 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                <Heart className={`h-5 w-5 mr-2 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                {isFavorited ? 'Favorited' : 'Add to Favorites'}
               </Button>
               <Button 
                 variant="outline" 
-                size="icon"
+                size="lg"
                 onClick={handleShare}
-                className="hover-scale"
+                className="glass-effect hover:bg-primary/10 border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
               >
-                <Share2 className="h-4 w-4" />
+                <Share2 className="h-5 w-5 mr-2" />
+                Share
               </Button>
             </div>
             
             {/* Product Description */}
-            <Card className="bg-card/60 backdrop-blur-sm border-border/50">
-              <CardContent className="p-6">
-                <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <Card className="glass-effect border-border/30 shadow-tech">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-semibold mb-3 text-foreground">About this product</h3>
+                <p className="text-muted-foreground leading-relaxed text-base">{product.description}</p>
               </CardContent>
             </Card>
             
