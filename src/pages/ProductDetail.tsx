@@ -261,69 +261,75 @@ export default function ProductDetail() {
           </div>
           
           {/* Product Info */}
-          <div className="space-y-6 animate-fade-in">
-            {/* Brand and Category */}
-            <div className="flex items-center gap-2 mb-2">
-              <Badge variant="outline" className="text-xs font-medium px-2 py-1">
-                {product.brand}
-              </Badge>
-              <Badge variant="secondary" className="text-xs font-medium px-2 py-1">
-                {product.category}
-              </Badge>
+          <div className="space-y-8 animate-fade-in">
+            {/* Brand Header */}
+            <div className="space-y-6">
+              {/* Brand Name - Prominent Display */}
+              <div>
+                <h1 className="text-6xl lg:text-7xl font-bold text-gradient mb-2 tracking-tight">
+                  {product.brand}
+                </h1>
+                <Badge variant="secondary" className="text-sm font-medium px-3 py-1">
+                  {product.category}
+                </Badge>
+              </div>
+              
+              {/* Product Name */}
+              <p className="text-xl lg:text-2xl text-muted-foreground font-medium leading-relaxed max-w-2xl">
+                {product.name}
+              </p>
             </div>
 
-            {/* Product Name */}
-            <h1 className="text-xl lg:text-2xl font-semibold text-foreground leading-tight mb-3">
-              {product.name}
-            </h1>
-
-            {/* Rating */}
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                <Star className="h-4 w-4 fill-muted text-muted" />
+            {/* Price and Rating Section */}
+            <div className="space-y-6">
+              {/* Price Display */}
+              <div className="relative">
+                <div className="text-6xl lg:text-7xl font-bold text-gradient mb-2">
+                  ${product.price.toLocaleString()}
+                </div>
+                <div className="absolute -top-2 -right-2 w-3 h-3 bg-primary rounded-full animate-pulse shadow-lg glow-primary"></div>
               </div>
-              <span className="text-sm text-muted-foreground">(4.2/5)</span>
-            </div>
-
-            {/* Price Display */}
-            <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800/30 mb-6">
-              <div className="text-2xl lg:text-3xl font-bold text-red-600 dark:text-red-400">
-                ${product.price.toLocaleString()}
+              
+              {/* Rating */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-yellow-400 text-yellow-400 drop-shadow-sm" />
+                  <Star className="h-6 w-6 fill-muted text-muted" />
+                </div>
+                <span className="text-lg font-medium text-muted-foreground">(4.2/5)</span>
               </div>
-              <div className="text-sm text-muted-foreground mt-1">Free shipping</div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-3 mb-6">
+            <div className="flex gap-4">
               <Button 
                 variant="outline" 
-                size="sm"
+                size="lg"
                 onClick={() => setIsFavorited(!isFavorited)}
-                className="flex-1 border-border/50 hover:border-primary/50"
+                className="glass-effect hover:bg-primary/10 border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
               >
-                <Heart className={`h-4 w-4 mr-2 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
-                Favorite
+                <Heart className={`h-5 w-5 mr-2 ${isFavorited ? 'fill-red-500 text-red-500' : ''}`} />
+                {isFavorited ? 'Favorited' : 'Add to Favorites'}
               </Button>
               <Button 
                 variant="outline" 
-                size="sm"
+                size="lg"
                 onClick={handleShare}
-                className="flex-1 border-border/50 hover:border-primary/50"
+                className="glass-effect hover:bg-primary/10 border-border/30 hover:border-primary/50 transition-all duration-300 hover:shadow-lg"
               >
-                <Share2 className="h-4 w-4 mr-2" />
+                <Share2 className="h-5 w-5 mr-2" />
                 Share
               </Button>
             </div>
             
             {/* Product Description */}
-            <Card className="bg-card border-border/50">
-              <CardContent className="p-4">
-                <h3 className="text-sm font-medium mb-2 text-foreground">Product Description</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+            <Card className="glass-effect border-border/30 shadow-tech">
+              <CardContent className="p-8">
+                <h3 className="text-lg font-semibold mb-3 text-foreground">About this product</h3>
+                <p className="text-muted-foreground leading-relaxed text-base">{product.description}</p>
               </CardContent>
             </Card>
             
