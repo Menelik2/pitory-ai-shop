@@ -4,7 +4,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 
-export interface Product {
+interface Product {
   id: string;
   name: string;
   brand: string;
@@ -35,10 +35,9 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
   };
 
   return (
-    <Link to={`/products/${product.id}`} className="block w-full">
-      <Card
-        className="
-        w-full min-h-[400px]
+    <Link to={`/products/${product.id}`} className="block">
+      <Card className="
+        max-w-xs min-h-[400px] mx-auto
         rounded-2xl overflow-hidden
         bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900
         border border-purple-800
@@ -47,8 +46,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         hover:-translate-y-2 hover:scale-105 hover:shadow-fuchsia-800/40
         group relative
         font-sans
-      "
-      >
+      ">
         <CardHeader className="p-0">
           <div className="relative aspect-video overflow-hidden rounded-t-2xl">
             <img
@@ -61,16 +59,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                 rounded-t-2xl
               "
             />
-            <Badge
-              className="
+            <Badge className="
               absolute top-3 left-3
               bg-fuchsia-600 text-white px-4 py-1 text-xs font-bold shadow
               rounded-full
               scale-90 group-hover:scale-110
               transition-transform duration-300
               border border-fuchsia-900
-            "
-            >
+            ">
               {product.category}
             </Badge>
           </div>
@@ -85,7 +81,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-2">
             <span className="flex items-center gap-2 px-2 py-1 bg-indigo-800 rounded-full text-xs text-yellow-200 font-bold border border-yellow-300">
-              CPU: <span className="font-normal">{product.cpu.split(" ").slice(-1)[0]}</span>
+              CPU: <span className="font-normal">{product.cpu.split(' ').slice(-1)[0]}</span>
             </span>
             <span className="flex items-center gap-2 px-2 py-1 bg-purple-800 rounded-full text-xs text-pink-200 font-bold border border-pink-400">
               Generation: <span className="font-normal">{product.generation}</span>
