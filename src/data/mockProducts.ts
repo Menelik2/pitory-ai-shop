@@ -4,16 +4,72 @@ export interface Product {
   brand: string;
   category: string;
   price: number;
-  cpu: string;
-  generation: string;
-  ram: string;
-  storage: string;
-  display?: string;
   description: string;
   image: string;
   images?: string[];
   stock: number;
+  // Legacy computer specs (for backward compatibility)
+  cpu?: string;
+  generation?: string;
+  ram?: string;
+  storage?: string;
+  display?: string;
+  // Flexible specifications for different categories
+  specifications?: Record<string, string>;
 }
+
+// Specification templates for different categories
+export const specificationTemplates = {
+  Desktop: {
+    cpu: { label: "CPU", placeholder: "e.g., Intel Core i7-13700K" },
+    generation: { label: "Generation", placeholder: "e.g., 13th Gen" },
+    ram: { label: "RAM", placeholder: "e.g., 32GB DDR4" },
+    storage: { label: "Storage", placeholder: "e.g., 1TB NVMe SSD" },
+    display: { label: "Display", placeholder: "e.g., 27\" 144Hz" },
+    graphics: { label: "Graphics Card", placeholder: "e.g., RTX 4070" },
+    motherboard: { label: "Motherboard", placeholder: "e.g., ASUS ROG STRIX" }
+  },
+  Laptop: {
+    cpu: { label: "CPU", placeholder: "e.g., Intel Core i7-13700H" },
+    generation: { label: "Generation", placeholder: "e.g., 13th Gen" },
+    ram: { label: "RAM", placeholder: "e.g., 16GB DDR5" },
+    storage: { label: "Storage", placeholder: "e.g., 512GB NVMe SSD" },
+    display: { label: "Display", placeholder: "e.g., 15.6\" FHD IPS" },
+    graphics: { label: "Graphics Card", placeholder: "e.g., RTX 4060" },
+    battery: { label: "Battery Life", placeholder: "e.g., Up to 8 hours" },
+    weight: { label: "Weight", placeholder: "e.g., 2.1 kg" }
+  },
+  Accessories: {
+    type: { label: "Product Type", placeholder: "e.g., Mouse, Keyboard, Headset" },
+    connectivity: { label: "Connectivity", placeholder: "e.g., Wireless, USB-C, Bluetooth" },
+    compatibility: { label: "Compatibility", placeholder: "e.g., Windows, Mac, Universal" },
+    dimensions: { label: "Dimensions", placeholder: "e.g., 120 x 65 x 38 mm" },
+    weight: { label: "Weight", placeholder: "e.g., 85g" },
+    battery: { label: "Battery Life", placeholder: "e.g., Up to 70 hours" },
+    features: { label: "Key Features", placeholder: "e.g., RGB lighting, Programmable buttons" },
+    warranty: { label: "Warranty", placeholder: "e.g., 2 years" }
+  },
+  Printer: {
+    print_type: { label: "Print Type", placeholder: "e.g., Inkjet, Laser, All-in-One" },
+    print_speed: { label: "Print Speed", placeholder: "e.g., 15 ppm (black), 10 ppm (color)" },
+    resolution: { label: "Print Resolution", placeholder: "e.g., 4800 x 1200 dpi" },
+    connectivity: { label: "Connectivity", placeholder: "e.g., Wi-Fi, USB, Ethernet" },
+    paper_sizes: { label: "Paper Sizes", placeholder: "e.g., A4, Letter, Legal, Photo" },
+    cartridge: { label: "Cartridge Type", placeholder: "e.g., HP 65XL, Canon PG-245XL" },
+    functions: { label: "Functions", placeholder: "e.g., Print, Scan, Copy, Fax" },
+    monthly_duty: { label: "Monthly Duty Cycle", placeholder: "e.g., 1000 - 5000 pages" }
+  },
+  Networking: {
+    device_type: { label: "Device Type", placeholder: "e.g., Router, Switch, Access Point" },
+    speed: { label: "Speed", placeholder: "e.g., AC1900, AX6000, 1 Gbps" },
+    ports: { label: "Ports", placeholder: "e.g., 4x Gigabit Ethernet, 1x WAN" },
+    wireless_standard: { label: "Wireless Standard", placeholder: "e.g., Wi-Fi 6 (802.11ax)" },
+    frequency: { label: "Frequency Bands", placeholder: "e.g., 2.4GHz + 5GHz" },
+    range: { label: "Coverage Range", placeholder: "e.g., Up to 3000 sq ft" },
+    security: { label: "Security", placeholder: "e.g., WPA3, Firewall, VPN" },
+    antennas: { label: "Antennas", placeholder: "e.g., 6x High-gain antennas" }
+  }
+};
 
 export const mockProducts: Product[] = [
   {
@@ -145,3 +201,8 @@ export const mockProducts: Product[] = [
 ];
 
 export const categories = ["All", "Desktop", "Laptop", "Accessories", "Printer", "Networking"];
+
+// Helper function to get category-specific specifications
+export const getCategorySpecs = (category: string): Record<string, { label: string; placeholder: string }> => {
+  return specificationTemplates[category as keyof typeof specificationTemplates] || {};
+};

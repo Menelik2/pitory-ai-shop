@@ -3,22 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  category: string;
-  description: string;
-  image: string;
-  stock: number;
-  cpu: string;
-  generation: string;
-  ram: string;
-  storage: string;
-  display: string;
-}
+import { Product } from "@/data/mockProducts";
 
 interface ProductCardProps {
   product: Product;
@@ -33,6 +18,22 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       description: `${product.name} has been added to your cart.`,
     });
   };
+
+  // Get the first 4 specifications to display, prioritizing the most relevant ones
+  const getDisplaySpecifications = () => {
+    const specs = product.specifications || {};
+    const legacySpecs = {
+      ...(product.cpu && { cpu: product.cpu }),
+      ...(product.generation && { generation: product.generation }),
+      ...(product.ram && { ram: product.ram }),
+      ...(product.storage && { storage: product.storage })
+    };
+    
+    const allSpecs = { ...legacySpecs, ...specs };
+    return Object.entries(allSpecs).slice(0, 4);
+  };
+
+  const displaySpecs = getDisplaySpecifications();
 
   return (
     <Link to={`/products/${product.id}`} className="block">
@@ -80,18 +81,21 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             {product.description}
           </p>
           <div className="flex flex-wrap justify-center gap-2 mb-2">
-            <span className="flex items-center gap-2 px-2 py-1 bg-indigo-800 rounded-full text-xs text-yellow-200 font-bold border border-yellow-300">
-              CPU: <span className="font-normal">{product.cpu.split(' ').slice(-1)[0]}</span>
-            </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-purple-800 rounded-full text-xs text-pink-200 font-bold border border-pink-400">
-              Generation: <span className="font-normal">{product.generation}</span>
-            </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-fuchsia-800 rounded-full text-xs text-green-200 font-bold border border-green-400">
-              RAM: <span className="font-normal">{product.ram}</span>
-            </span>
-            <span className="flex items-center gap-2 px-2 py-1 bg-pink-700 rounded-full text-xs text-cyan-100 font-bold border border-cyan-400">
-              Storage: <span className="font-normal">{product.storage}</span>
-            </span>
+            {displaySpecs.map(([key, value], index) => {
+              const colors = [
+                "bg-indigo-800 text-yellow-200 border-yellow-300",
+                "bg-purple-800 text-pink-200 border-pink-400", 
+                "bg-fuchsia-800 text-green-200 border-green-400",
+                "bg-pink-700 text-cyan-100 border-cyan-400"
+              ];
+              const colorClass = colors[index % colors.length];
+              
+              return (
+                <span key={key} className={`flex items-center gap-2 px-2 py-1 rounded-full text-xs font-bold border ${colorClass}`}>
+                  {key.toUpperCase()}: <span className="font-normal">{value}</span>
+                </span>
+              );
+            })}
           </div>
           <div className="flex items-center justify-between mt-2">
             <div className="text-xl font-extrabold text-yellow-300 font-mono drop-shadow">

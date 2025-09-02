@@ -13,23 +13,8 @@ import { Minus, Plus, ShoppingCart, Send, Star, Heart, Share2, Zap, Monitor, Har
 import { useCart } from "@/context/CartContext";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Product } from "@/data/mockProducts";
 
-interface Product {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  category: string;
-  description: string;
-  image: string;
-  images: string[];
-  stock: number;
-  cpu: string;
-  generation: string;
-  ram: string;
-  storage: string;
-  display: string;
-}
 interface Comment {
   id: string;
   comment: string;
@@ -70,6 +55,17 @@ export default function ProductDetail() {
       if (error) throw error;
 
       if (data) {
+        // Helper function to safely convert detailed_specs to Record<string, string>
+        const convertSpecifications = (specs: any): Record<string, string> => {
+          if (!specs || typeof specs !== 'object') return {};
+          
+          const result: Record<string, string> = {};
+          for (const [key, value] of Object.entries(specs)) {
+            result[key] = String(value || '');
+          }
+          return result;
+        };
+
         const convertedProduct: Product = {
           id: data.id,
           name: data.name,
@@ -80,6 +76,8 @@ export default function ProductDetail() {
           image: data.image_urls?.[0] || '/placeholder.svg',
           images: data.image_urls || ['/placeholder.svg'],
           stock: data.stock_quantity || 0,
+          specifications: convertSpecifications(data.detailed_specs),
+          // Legacy fields for backward compatibility
           cpu: (data.detailed_specs as any)?.cpu || '',
           generation: (data.detailed_specs as any)?.generation || '',
           ram: (data.detailed_specs as any)?.ram || '',
@@ -108,6 +106,8 @@ export default function ProductDetail() {
             image: item.image_urls?.[0] || '/placeholder.svg',
             images: item.image_urls || ['/placeholder.svg'],
             stock: item.stock_quantity || 0,
+            specifications: convertSpecifications(item.detailed_specs),
+            // Legacy fields
             cpu: (item.detailed_specs as any)?.cpu || '',
             generation: (item.detailed_specs as any)?.generation || '',
             ram: (item.detailed_specs as any)?.ram || '',
@@ -338,46 +338,70 @@ export default function ProductDetail() {
                 <Card className="bg-gradient-to-br from-card via-card to-muted/10 backdrop-blur border-border/50">
                   <CardContent className="p-6">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-                        <Cpu className="h-5 w-5 text-primary" />
-                        <div>
-                          <div className="font-medium">Processor</div>
-                          <div className="text-sm text-muted-foreground">{product.cpu}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-                        <Zap className="h-5 w-5 text-primary" />
-                        <div>
-                          <div className="font-medium">Generation</div>
-                          <div className="text-sm text-muted-foreground">{product.generation}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-                        <HardDrive className="h-5 w-5 text-primary" />
-                        <div>
-                          <div className="font-medium">Memory</div>
-                          <div className="text-sm text-muted-foreground">{product.ram}</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
-                        <HardDrive className="h-5 w-5 text-primary" />
-                        <div>
-                          <div className="font-medium">Storage</div>
-                          <div className="text-sm text-muted-foreground">{product.storage}</div>
-                        </div>
-                      </div>
-                      
-                      {product.display && (
-                        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors sm:col-span-2">
-                          <Monitor className="h-5 w-5 text-primary" />
-                          <div>
-                            <div className="font-medium">Display</div>
-                            <div className="text-sm text-muted-foreground">{product.display}</div>
+                      {/* Dynamic specifications from the new system */}
+                      {product.specifications && Object.entries(product.specifications).length > 0 ? (
+                        Object.entries(product.specifications).map(([key, value]) => (
+                          <div key={key} className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                            <Cpu className="h-5 w-5 text-primary" />
+                            <div>
+                              <div className="font-medium capitalize">{key.replace(/_/g, ' ')}</div>
+                              <div className="text-sm text-muted-foreground">{value}</div>
+                            </div>
                           </div>
-                        </div>
+                        ))
+                      ) : (
+                        /* Fallback to legacy specifications for backward compatibility */
+                        <>
+                          {product.cpu && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                              <Cpu className="h-5 w-5 text-primary" />
+                              <div>
+                                <div className="font-medium">Processor</div>
+                                <div className="text-sm text-muted-foreground">{product.cpu}</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.generation && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                              <Zap className="h-5 w-5 text-primary" />
+                              <div>
+                                <div className="font-medium">Generation</div>
+                                <div className="text-sm text-muted-foreground">{product.generation}</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.ram && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                              <HardDrive className="h-5 w-5 text-primary" />
+                              <div>
+                                <div className="font-medium">Memory</div>
+                                <div className="text-sm text-muted-foreground">{product.ram}</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.storage && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors">
+                              <HardDrive className="h-5 w-5 text-primary" />
+                              <div>
+                                <div className="font-medium">Storage</div>
+                                <div className="text-sm text-muted-foreground">{product.storage}</div>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {product.display && (
+                            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors sm:col-span-2">
+                              <Monitor className="h-5 w-5 text-primary" />
+                              <div>
+                                <div className="font-medium">Display</div>
+                                <div className="text-sm text-muted-foreground">{product.display}</div>
+                              </div>
+                            </div>
+                          )}
+                        </>
                       )}
                     </div>
                   </CardContent>

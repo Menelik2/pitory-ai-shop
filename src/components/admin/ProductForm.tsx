@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Plus, Trash2 } from "lucide-react";
-import { Product, categories } from "@/data/mockProducts";
+import { Product, categories, getCategorySpecs } from "@/data/mockProducts";
 
 interface ProductFormProps {
   product?: Product;
@@ -22,15 +22,17 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     brand: product?.brand || "",
     category: product?.category || "",
     price: product?.price || 0,
+    description: product?.description || "",
+    image: product?.image || "https://placehold.co/600x400.png",
+    images: product?.images || ["https://placehold.co/600x400.png"],
+    stock: product?.stock || 0,
+    specifications: product?.specifications || {},
+    // Legacy fields for backward compatibility
     cpu: product?.cpu || "",
     generation: product?.generation || "",
     ram: product?.ram || "",
     storage: product?.storage || "",
     display: product?.display || "",
-    description: product?.description || "",
-    image: product?.image || "https://placehold.co/600x400.png",
-    images: product?.images || ["https://placehold.co/600x400.png"],
-    stock: product?.stock || 0,
   });
 
   // Update form data whenever product prop changes
@@ -41,15 +43,17 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
         brand: product.brand || "",
         category: product.category || "",
         price: product.price || 0,
+        description: product.description || "",
+        image: product.image || "https://placehold.co/600x400.png",
+        images: product.images || [product.image || "https://placehold.co/600x400.png"],
+        stock: product.stock || 0,
+        specifications: product.specifications || {},
+        // Legacy fields
         cpu: product.cpu || "",
         generation: product.generation || "",
         ram: product.ram || "",
         storage: product.storage || "",
         display: product.display || "",
-        description: product.description || "",
-        image: product.image || "https://placehold.co/600x400.png",
-        images: product.images || [product.image || "https://placehold.co/600x400.png"],
-        stock: product.stock || 0,
       });
     } else {
       // Reset form for new product
@@ -58,18 +62,34 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
         brand: "",
         category: "",
         price: 0,
+        description: "",
+        image: "https://placehold.co/600x400.png",
+        images: ["https://placehold.co/600x400.png"],
+        stock: 0,
+        specifications: {},
         cpu: "",
         generation: "",
         ram: "",
         storage: "",
         display: "",
-        description: "",
-        image: "https://placehold.co/600x400.png",
-        images: ["https://placehold.co/600x400.png"],
-        stock: 0,
       });
     }
   }, [product]);
+
+  // Reset specifications when category changes
+  useEffect(() => {
+    if (formData.category) {
+      const categorySpecs = getCategorySpecs(formData.category);
+      const newSpecs: Record<string, string> = {};
+      
+      // Initialize empty specs for the new category
+      Object.keys(categorySpecs).forEach(key => {
+        newSpecs[key] = formData.specifications?.[key] || "";
+      });
+      
+      setFormData(prev => ({ ...prev, specifications: newSpecs }));
+    }
+  }, [formData.category]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,6 +99,16 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
 
   const handleChange = (field: string, value: string | number | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSpecificationChange = (specKey: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      specifications: {
+        ...prev.specifications,
+        [specKey]: value
+      }
+    }));
   };
 
   const handleImageChange = (index: number, value: string) => {
@@ -197,58 +227,33 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
             </div>
 
             <div>
-              <h3 className="font-semibold mb-4">Specifications</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="cpu">CPU</Label>
-                  <Input
-                    id="cpu"
-                    value={formData.cpu}
-                    onChange={(e) => handleChange("cpu", e.target.value)}
-                    placeholder="e.g., Ryzen 9"
-                  />
+              <h3 className="font-semibold mb-4">
+                {formData.category ? `${formData.category} Specifications` : "Specifications"}
+              </h3>
+              
+              {formData.category && getCategorySpecs(formData.category) ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {Object.entries(getCategorySpecs(formData.category)).map(([key, spec]) => (
+                    <div key={key}>
+                      <Label htmlFor={key}>{spec.label}</Label>
+                      <Input
+                        id={key}
+                        value={formData.specifications?.[key] || ""}
+                        onChange={(e) => handleSpecificationChange(key, e.target.value)}
+                        placeholder={spec.placeholder}
+                      />
+                    </div>
+                  ))}
                 </div>
-                
-                <div>
-                  <Label htmlFor="generation">Generation</Label>
-                  <Input
-                    id="generation"
-                    value={formData.generation}
-                    onChange={(e) => handleChange("generation", e.target.value)}
-                    placeholder="e.g., 14th Gen"
-                  />
+              ) : formData.category ? (
+                <div className="text-sm text-muted-foreground p-4 border rounded-md">
+                  Select a valid category to see relevant specification fields.
                 </div>
-                
-                <div>
-                  <Label htmlFor="ram">RAM</Label>
-                  <Input
-                    id="ram"
-                    value={formData.ram}
-                    onChange={(e) => handleChange("ram", e.target.value)}
-                    placeholder="e.g., 32GB DDR5"
-                  />
+              ) : (
+                <div className="text-sm text-muted-foreground p-4 border rounded-md">
+                  Please select a category first to see relevant specification fields.
                 </div>
-                
-                <div>
-                  <Label htmlFor="storage">Storage</Label>
-                  <Input
-                    id="storage"
-                    value={formData.storage}
-                    onChange={(e) => handleChange("storage", e.target.value)}
-                    placeholder="e.g., 1TB NVMe SSD"
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="display">Display</Label>
-                  <Input
-                    id="display"
-                    value={formData.display}
-                    onChange={(e) => handleChange("display", e.target.value)}
-                    placeholder="e.g., 27-inch 4K"
-                  />
-                </div>
-              </div>
+              )}
             </div>
 
             <div>
