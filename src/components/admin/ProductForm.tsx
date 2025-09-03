@@ -6,8 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Upload, X } from "lucide-react";
 import { Product, categories, getCategorySpecs } from "@/data/mockProducts";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 
 interface ProductFormProps {
   product?: Product;
@@ -34,6 +36,8 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     storage: product?.storage || "",
     display: product?.display || "",
   });
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   // Update form data whenever product prop changes
   useEffect(() => {
@@ -91,10 +95,49 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
     }
   }, [formData.category]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave(formData);
+    
+    let finalImages = [...formData.images];
+    
+    // Upload new files if any
+    if (uploadedFiles.length > 0) {
+      setUploading(true);
+      try {
+        const uploadPromises = uploadedFiles.map(async (file, index) => {
+          const fileName = `${Date.now()}-${index}-${file.name}`;
+          const { data, error } = await supabase.storage
+            .from('product-images')
+            .upload(fileName, file);
+          
+          if (error) throw error;
+          
+          // Get public URL
+          const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName);
+          
+          return publicUrl;
+        });
+        
+        const uploadedUrls = await Promise.all(uploadPromises);
+        finalImages = [...uploadedUrls, ...formData.images.filter(img => img !== "https://placehold.co/600x400.png")];
+        
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload images. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      } finally {
+        setUploading(false);
+      }
+    }
+    
+    onSave({ ...formData, images: finalImages, image: finalImages[0] });
     onClose();
+    setUploadedFiles([]);
   };
 
   const handleChange = (field: string, value: string | number | string[]) => {
@@ -122,6 +165,29 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
       ...prev, 
       images: [...prev.images, "https://placehold.co/600x400.png"] 
     }));
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    const validFiles = files.filter(file => {
+      const isValidType = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(file.type);
+      const isValidSize = file.size <= 10485760; // 10MB
+      return isValidType && isValidSize;
+    });
+    
+    if (validFiles.length !== files.length) {
+      toast({
+        title: "Invalid files",
+        description: "Some files were rejected. Only JPEG, PNG, WebP, GIF under 10MB are allowed.",
+        variant: "destructive",
+      });
+    }
+    
+    setUploadedFiles(prev => [...prev, ...validFiles]);
+  };
+
+  const removeUploadedFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   const removeImage = (index: number) => {
@@ -257,19 +323,68 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <Label>Product Images</Label>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={addImage}
-                  className="flex items-center gap-2"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add Image
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => document.getElementById('file-upload')?.click()}
+                    className="flex items-center gap-2"
+                    disabled={uploading}
+                  >
+                    <Upload className="h-4 w-4" />
+                    Upload Images
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={addImage}
+                    className="flex items-center gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add URL
+                  </Button>
+                </div>
               </div>
+
+              {/* Hidden file input */}
+              <input
+                id="file-upload"
+                type="file"
+                multiple
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              {/* Uploaded files preview */}
+              {uploadedFiles.length > 0 && (
+                <div className="mb-4">
+                  <Label className="text-sm text-muted-foreground">Files to upload:</Label>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="relative">
+                        <div className="flex items-center gap-2 bg-muted rounded-lg p-2 text-sm">
+                          <span className="truncate max-w-32">{file.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeUploadedFile(index)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing image URLs */}
               <div className="space-y-4">
                 {formData.images.map((imageUrl, index) => (
                   <div key={index} className="flex gap-2">
@@ -303,8 +418,8 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Add up to 4 images. The first image will be the main product image. 
-                Supports Unsplash, Imgur, Google Drive, and direct image links.
+                Upload images directly to Supabase Storage or add URLs manually. 
+                Uploaded images get permanent URLs that won't break.
               </p>
             </div>
 
@@ -312,8 +427,8 @@ export function ProductForm({ product, isOpen, onClose, onSave }: ProductFormPro
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit">
-                {product ? "Update Product" : "Add Product"}
+              <Button type="submit" disabled={uploading}>
+                {uploading ? "Uploading..." : (product ? "Update Product" : "Add Product")}
               </Button>
             </div>
           </form>
