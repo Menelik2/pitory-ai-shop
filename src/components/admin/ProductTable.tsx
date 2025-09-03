@@ -37,6 +37,7 @@ interface FormProduct {
   image: string;
   images?: string[];
   stock: number;
+  specifications?: Record<string, string>;
 }
 
 export function ProductTable() {
@@ -90,7 +91,8 @@ export function ProductTable() {
       description: product.description,
       image: product.image_urls?.[0] || "",
       images: product.image_urls || [""],
-      stock: product.stock_quantity
+      stock: product.stock_quantity,
+      specifications: product.detailed_specs || {}
     };
     setSelectedProduct(formProduct);
     setIsFormOpen(true);
@@ -122,6 +124,17 @@ export function ProductTable() {
   const handleSaveProduct = async (formData: any) => {
     try {
       // Convert form data to database format
+      // Use dynamic specifications if available, otherwise fall back to legacy fields
+      const specifications = formData.specifications && Object.keys(formData.specifications).length > 0 
+        ? formData.specifications 
+        : {
+            cpu: formData.cpu,
+            generation: formData.generation,
+            ram: formData.ram,
+            storage: formData.storage,
+            display: formData.display
+          };
+
       const dbData = {
         name: formData.name,
         brand: formData.brand,
@@ -130,13 +143,7 @@ export function ProductTable() {
         description: formData.description,
         image_urls: formData.images || [formData.image],
         stock_quantity: formData.stock,
-        detailed_specs: {
-          cpu: formData.cpu,
-          generation: formData.generation,
-          ram: formData.ram,
-          storage: formData.storage,
-          display: formData.display
-        },
+        detailed_specs: specifications,
         slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
       };
 
@@ -203,9 +210,8 @@ export function ProductTable() {
                 <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Brand</TableHead>
-                <TableHead>CPU</TableHead>
-                <TableHead>Gen</TableHead>
-                <TableHead>RAM</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Specifications</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Actions</TableHead>
@@ -223,9 +229,16 @@ export function ProductTable() {
                   </TableCell>
                   <TableCell className="font-medium">{product.name}</TableCell>
                   <TableCell>{product.brand}</TableCell>
-                   <TableCell>{product.detailed_specs?.cpu || 'N/A'}</TableCell>
-                   <TableCell>{product.detailed_specs?.generation || 'N/A'}</TableCell>
-                   <TableCell>{product.detailed_specs?.ram || 'N/A'}</TableCell>
+                  <TableCell>{product.category}</TableCell>
+                  <TableCell>
+                    <div className="text-xs space-y-1 max-w-48">
+                      {product.detailed_specs && Object.entries(product.detailed_specs).slice(0, 3).map(([key, value]) => (
+                        <div key={key} className="truncate">
+                          <span className="font-medium capitalize">{key}:</span> {value as string}
+                        </div>
+                      ))}
+                    </div>
+                  </TableCell>
                   <TableCell>${product.price.toLocaleString()}</TableCell>
                    <TableCell>{product.stock_quantity}</TableCell>
                   <TableCell>
