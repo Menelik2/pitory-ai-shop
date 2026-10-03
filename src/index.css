@@ -2,65 +2,64 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Clean iOS-inspired light design system. All colors in HSL. */
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    /* Light, clear surfaces */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
 
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
 
-    --primary: 263 70% 50.4%;
-    --primary-foreground: 0 0% 98%;
+    /* Soft system blue (iOS-like) */
+    --primary: 211 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 240 5% 96%;
+    --accent-foreground: 0 0% 9%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 263 70% 50.4%;
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 211 100% 50%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Enhanced design system */
-    --gradient-from: 263 70% 50.4%;
-    --gradient-to: 270 80% 40%;
-    --gradient-primary: linear-gradient(135deg, hsl(var(--gradient-from)), hsl(var(--gradient-to)));
-    --gradient-secondary: linear-gradient(45deg, hsl(var(--gradient-from) / 0.2), hsl(var(--gradient-to) / 0.1));
-    --gradient-card: linear-gradient(135deg, hsl(240 10% 3.9% / 0.8), hsl(240 5% 8% / 0.9));
-    --glow-primary: 0 0 40px hsl(263 70% 50.4% / 0.4);
-    --shadow-elegant: 0 20px 60px -10px hsl(263 70% 50.4% / 0.2);
-    --shadow-card: 0 12px 40px -8px hsl(263 70% 50.4% / 0.15);
-    --shadow-hover: 0 25px 80px -12px hsl(263 70% 50.4% / 0.3);
-    --border-gradient: linear-gradient(135deg, hsl(263 70% 50.4% / 0.3), hsl(270 80% 40% / 0.2));
-    
-    /* Featured Products color */
-    --featured-color: 35 85% 50%;
+    /* Soft, minimal effects */
+    --gradient-from: 211 100% 50%;
+    --gradient-to: 211 100% 45%;
+    --gradient-primary: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
+    --gradient-secondary: linear-gradient(180deg, hsl(240 5% 98%), hsl(240 5% 96%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 100%));
+    --glow-primary: 0 0 0 transparent;
+    --shadow-elegant: 0 1px 3px hsl(0 0% 0% / 0.04), 0 4px 12px hsl(0 0% 0% / 0.04);
+    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.04), 0 2px 8px hsl(0 0% 0% / 0.04);
+    --shadow-hover: 0 4px 16px hsl(0 0% 0% / 0.08);
+    --border-gradient: none;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 263 70% 50.4%;
+    --featured-color: 211 100% 45%;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 211 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 263 70% 50.4%;
+    --sidebar-accent: 240 5% 96%;
+    --sidebar-accent-foreground: 0 0% 9%;
+    --sidebar-border: 240 6% 90%;
+    --sidebar-ring: 211 100% 50%;
   }
 }
 
@@ -70,39 +69,41 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply text-foreground;
-    background: var(--gradient-primary);
+    @apply bg-background text-foreground antialiased;
     min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
 @layer utilities {
   .glass-effect {
-    @apply bg-card/80 backdrop-blur-md border border-border/50;
+    @apply bg-white/80 backdrop-blur-xl border border-black/5;
   }
-  
+
   .tech-gradient {
     background: var(--gradient-primary);
   }
-  
+
   .card-gradient {
     background: var(--gradient-card);
   }
-  
+
   .shadow-tech {
     box-shadow: var(--shadow-elegant);
   }
-  
+
   .shadow-hover-tech {
     box-shadow: var(--shadow-hover);
   }
-  
+
   .glow-primary {
     box-shadow: var(--glow-primary);
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
+    @apply text-primary;
   }
 
   .text-featured {
@@ -110,6 +111,6 @@ All colors MUST be HSL.
   }
 
   .border-gradient {
-    border-image: var(--border-gradient) 1;
+    border: 1px solid hsl(var(--border));
   }
 }
