@@ -27,86 +27,105 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
       ...(product.ram && { ram: product.ram }),
       ...(product.storage && { storage: product.storage }),
     };
-
     const allSpecs = { ...legacySpecs, ...specs };
-    return Object.entries(allSpecs).slice(0, 4);
+    return Object.entries(allSpecs).slice(0, 3);
   };
 
   const displaySpecs = getDisplaySpecifications();
 
   return (
-    <Link to={`/products/${product.id}`} className="block group">
+    <Link to={`/products/${product.id}`} className="block group h-full">
       <Card className="
-        max-w-xs min-h-[400px] mx-auto
+        h-full flex flex-col
+        max-w-sm mx-auto
         rounded-2xl overflow-hidden
         bg-white
-        border border-black/5
-        shadow-sm
-        transition-all duration-300
-        hover:shadow-md hover:-translate-y-0.5
-        relative
+        border border-black/[0.04]
+        shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)]
+        transition-all duration-300 ease-out
+        hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
+        hover:-translate-y-1
       ">
         <CardHeader className="p-0">
-          <div className="relative aspect-video overflow-hidden bg-secondary/40">
+          <div className="relative aspect-[4/3] overflow-hidden bg-[#f5f5f7]">
             <img
               src={product.image}
               alt={product.name}
               className="
                 w-full h-full object-cover
-                transition-transform duration-500
-                group-hover:scale-[1.03]
+                transition-transform duration-700 ease-out
+                group-hover:scale-[1.04]
               "
             />
-            <Badge className="
-              absolute top-3 left-3
-              bg-white/90 text-foreground backdrop-blur-sm
-              px-2.5 py-0.5 text-[11px] font-medium
-              rounded-lg border border-black/5 shadow-sm
-            ">
-              {product.category}
-            </Badge>
+            <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
+              <Badge className="
+                bg-white/90 text-foreground backdrop-blur-md
+                px-2.5 py-1 text-[11px] font-medium tracking-wide
+                rounded-full border-0 shadow-sm
+              ">
+                {product.category}
+              </Badge>
+              {product.stock > 0 && product.stock <= 10 && (
+                <Badge className="
+                  bg-amber-50 text-amber-800
+                  px-2 py-1 text-[10px] font-medium
+                  rounded-full border-0
+                ">
+                  Low stock
+                </Badge>
+              )}
+            </div>
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 px-4 py-4 text-left">
-          <h3 className="font-semibold text-base mb-1 line-clamp-2 text-foreground tracking-tight">
+        <CardContent className="flex-1 flex flex-col px-5 pt-5 pb-2">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground mb-1">
+            {product.brand}
+          </p>
+          <h3 className="font-semibold text-[15px] leading-snug mb-2 line-clamp-2 text-foreground tracking-tight">
             {product.name}
           </h3>
-          <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+          <p className="text-[13px] text-muted-foreground mb-4 line-clamp-2 leading-relaxed">
             {product.description}
           </p>
-          <div className="flex flex-wrap gap-1.5 mb-3">
-            {displaySpecs.map(([key, value]) => (
-              <span
-                key={key}
-                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-secondary text-muted-foreground border border-black/5"
-              >
-                <span className="uppercase tracking-wide opacity-70">{key}</span>
-                <span className="text-foreground">{value}</span>
-              </span>
-            ))}
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="text-lg font-semibold text-foreground tabular-nums">
+
+          {displaySpecs.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4">
+              {displaySpecs.map(([key, value]) => (
+                <span
+                  key={key}
+                  className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] bg-[#f5f5f7] text-muted-foreground"
+                >
+                  <span className="font-medium text-foreground/70 mr-1">{key}:</span>
+                  {value}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-auto flex items-baseline justify-between gap-2">
+            <div className="text-xl font-semibold tracking-tight text-foreground tabular-nums">
               ${product.price.toLocaleString()}
             </div>
-            <div className="text-[11px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-medium border border-emerald-100">
-              In Stock
-            </div>
+            <span className="text-[11px] font-medium text-emerald-600">
+              In stock
+            </span>
           </div>
         </CardContent>
 
-        <CardFooter className="px-4 pt-0 pb-4">
+        <CardFooter className="px-5 pt-3 pb-5">
           <Button
             onClick={(e) => {
               e.preventDefault();
               handleAddToCart();
             }}
             className="
-              w-full
-              rounded-xl h-10
-              font-medium
+              w-full h-11
+              rounded-full
+              font-medium text-sm
+              shadow-none
               transition-all duration-200
+              hover:opacity-90
             "
           >
             Add to Cart

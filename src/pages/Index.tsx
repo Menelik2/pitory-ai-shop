@@ -5,7 +5,6 @@ import { Hero } from "@/components/Hero";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductFilters } from "@/components/ProductFilters";
 import { MobileCategoryFilter } from "@/components/MobileCategoryFilter";
-
 import { PCBuilderAssistant } from "@/components/PCBuilderAssistant";
 import { Footer } from "@/components/Footer";
 import { useCart } from "@/context/CartContext";
@@ -35,14 +34,13 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("name-asc");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const { addToCart, getTotalItems } = useCart();
   const { toast } = useToast();
 
-  // Read category from URL parameters
   useEffect(() => {
-    const categoryFromUrl = searchParams.get('category');
-    if (categoryFromUrl && ['Desktop', 'Laptop', 'Accessories'].includes(categoryFromUrl)) {
+    const categoryFromUrl = searchParams.get("category");
+    if (categoryFromUrl && ["Desktop", "Laptop", "Accessories"].includes(categoryFromUrl)) {
       setSelectedCategory(categoryFromUrl);
     }
   }, [searchParams]);
@@ -54,31 +52,30 @@ const Index = () => {
   const fetchProducts = async () => {
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      // Convert Supabase data to our Product interface
       const convertedProducts: Product[] = (data || []).map((product) => ({
         id: product.id,
         name: product.name,
-        brand: product.brand || '',
-        price: product.price, // Price is already in dollars
+        brand: product.brand || "",
+        price: product.price,
         category: product.category,
-        description: product.description || '',
-        image: product.image_urls?.[0] || '/placeholder.svg',
+        description: product.description || "",
+        image: product.image_urls?.[0] || "/placeholder.svg",
         stock: product.stock_quantity || 0,
-        cpu: (product.detailed_specs as any)?.cpu || '',
-        generation: (product.detailed_specs as any)?.generation || '',
-        ram: (product.detailed_specs as any)?.ram || '',
-        storage: (product.detailed_specs as any)?.storage || '',
-        display: (product.detailed_specs as any)?.display || ''
+        cpu: (product.detailed_specs as any)?.cpu || "",
+        generation: (product.detailed_specs as any)?.generation || "",
+        ram: (product.detailed_specs as any)?.ram || "",
+        storage: (product.detailed_specs as any)?.storage || "",
+        display: (product.detailed_specs as any)?.display || "",
       }));
 
       setProducts(convertedProducts);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to fetch products",
@@ -92,24 +89,22 @@ const Index = () => {
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = products;
 
-    // Filter by search query
     if (searchQuery) {
-      filtered = filtered.filter((product) =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.cpu.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.generation.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.ram.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.storage.toLowerCase().includes(searchQuery.toLowerCase())
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.cpu.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.generation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.ram.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.storage.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
-    // Filter by category
     if (selectedCategory !== "All") {
       filtered = filtered.filter((product) => product.category === selectedCategory);
     }
 
-    // Sort products
     switch (sortBy) {
       case "name-asc":
         filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -129,16 +124,23 @@ const Index = () => {
   }, [searchQuery, selectedCategory, sortBy, products]);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Header cartItemCount={getTotalItems()} onSearch={setSearchQuery} />
-      
+
       <main>
         <Hero />
-        
-        <section className="py-16 px-4">
+
+        <section className="py-16 md:py-20 px-4">
           <div className="container mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-12 text-featured">Featured Products</h2>
-            
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-2">
+                Featured Products
+              </h2>
+              <p className="text-muted-foreground text-base">
+                Carefully selected machines for every need
+              </p>
+            </div>
+
             <ProductFilters
               searchQuery={searchQuery}
               selectedCategory={selectedCategory}
@@ -147,33 +149,33 @@ const Index = () => {
               onCategoryChange={setSelectedCategory}
               onSortChange={setSortBy}
             />
-            
-            {/* Mobile Category Filter - After Featured Products */}
+
             <MobileCategoryFilter
               selectedCategory={selectedCategory}
               onCategoryChange={setSelectedCategory}
             />
-            
+
             {loading ? (
-              <div className="text-center py-12">
-                <p className="text-xl text-muted-foreground">Loading products...</p>
+              <div className="text-center py-20">
+                <p className="text-muted-foreground">Loading products...</p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
                   {filteredAndSortedProducts.map((product) => (
-                    <ProductCard 
-                      key={product.id} 
-                      product={product} 
-                      onAddToCart={addToCart} 
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      onAddToCart={addToCart}
                     />
                   ))}
                 </div>
-                
-                {!loading && filteredAndSortedProducts.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-xl text-muted-foreground">
-                      No products found matching your criteria.
+
+                {filteredAndSortedProducts.length === 0 && (
+                  <div className="text-center py-20">
+                    <p className="text-lg font-medium text-foreground mb-1">No products found</p>
+                    <p className="text-muted-foreground">
+                      Try adjusting your search or category filters.
                     </p>
                   </div>
                 )}
@@ -181,10 +183,10 @@ const Index = () => {
             )}
           </div>
         </section>
-        
+
         <PCBuilderAssistant />
       </main>
-      
+
       <Footer />
     </div>
   );

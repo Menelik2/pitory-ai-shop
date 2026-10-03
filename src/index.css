@@ -2,64 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Clean iOS-inspired light design system. All colors in HSL. */
+/* Premium light design system — refined neutrals, soft depth, system blue accent */
 
 @layer base {
   :root {
-    /* Light, clear surfaces */
-    --background: 0 0% 98%;
-    --foreground: 0 0% 9%;
+    --background: 40 20% 98%;
+    --foreground: 220 20% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
+    --card-foreground: 220 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
+    --popover-foreground: 220 20% 10%;
 
-    /* Soft system blue (iOS-like) */
-    --primary: 211 100% 50%;
+    /* Refined blue — premium but calm */
+    --primary: 215 90% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 0 0% 20%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 25%;
 
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 240 5% 96%;
-    --accent-foreground: 0 0% 9%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 20% 10%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
-    --ring: 211 100% 50%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 215 90% 45%;
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
-    /* Soft, minimal effects */
-    --gradient-from: 211 100% 50%;
-    --gradient-to: 211 100% 45%;
-    --gradient-primary: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
-    --gradient-secondary: linear-gradient(180deg, hsl(240 5% 98%), hsl(240 5% 96%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 100%));
+    --gradient-from: 215 90% 45%;
+    --gradient-to: 215 85% 38%;
+    --gradient-primary: linear-gradient(180deg, hsl(40 20% 99%), hsl(40 20% 97%));
+    --gradient-secondary: linear-gradient(180deg, hsl(220 14% 98%), hsl(220 14% 96%));
+    --gradient-card: linear-gradient(180deg, #ffffff, #ffffff);
     --glow-primary: 0 0 0 transparent;
-    --shadow-elegant: 0 1px 3px hsl(0 0% 0% / 0.04), 0 4px 12px hsl(0 0% 0% / 0.04);
-    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.04), 0 2px 8px hsl(0 0% 0% / 0.04);
-    --shadow-hover: 0 4px 16px hsl(0 0% 0% / 0.08);
+    --shadow-elegant: 0 1px 2px hsl(220 20% 10% / 0.04), 0 4px 16px hsl(220 20% 10% / 0.04);
+    --shadow-card: 0 1px 2px hsl(220 20% 10% / 0.03), 0 8px 24px hsl(220 20% 10% / 0.05);
+    --shadow-hover: 0 8px 30px hsl(220 20% 10% / 0.08);
     --border-gradient: none;
 
-    --featured-color: 211 100% 45%;
+    --featured-color: 220 20% 10%;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 20%;
-    --sidebar-primary: 211 100% 50%;
+    --sidebar-background: 40 20% 98%;
+    --sidebar-foreground: 220 15% 25%;
+    --sidebar-primary: 215 90% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 5% 96%;
-    --sidebar-accent-foreground: 0 0% 9%;
-    --sidebar-border: 240 6% 90%;
-    --sidebar-ring: 211 100% 50%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 220 20% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 215 90% 45%;
   }
 }
 
@@ -71,15 +69,20 @@
   body {
     @apply bg-background text-foreground antialiased;
     min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.011em;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.025em;
   }
 }
 
 @layer utilities {
   .glass-effect {
-    @apply bg-white/80 backdrop-blur-xl border border-black/5;
+    @apply bg-white/75 backdrop-blur-2xl border border-black/[0.04];
   }
 
   .tech-gradient {
@@ -103,7 +106,7 @@
   }
 
   .text-gradient {
-    @apply text-primary;
+    @apply text-foreground;
   }
 
   .text-featured {
@@ -112,5 +115,19 @@
 
   .border-gradient {
     border: 1px solid hsl(var(--border));
+  }
+
+  .premium-card {
+    @apply bg-white border border-black/[0.04] rounded-2xl;
+    box-shadow: var(--shadow-card);
+  }
+
+  .premium-card-hover {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .premium-card-hover:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
   }
 }
