@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+>(({ className, style, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
@@ -15,7 +15,7 @@ const Card = React.forwardRef<
     )}
     style={{
       WebkitBackdropFilter: "saturate(180%) blur(20px)",
-      ...((props as React.HTMLAttributes<HTMLDivElement>).style || {}),
+      ...style,
     }}
     {...props}
   />
