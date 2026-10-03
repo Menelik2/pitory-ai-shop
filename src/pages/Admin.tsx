@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DashboardStats } from "@/components/admin/DashboardStats";
+import { RecentActivity } from "@/components/admin/RecentActivity";
 import { ProductTable } from "@/components/admin/ProductTable";
 import { OrdersList } from "@/components/admin/OrdersList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,7 +14,7 @@ import { Package, ShoppingBag, LayoutDashboard } from "lucide-react";
 
 export default function Admin() {
   const { getTotalItems } = useCart();
-  const { user, isAdmin, loading, adminLoading } = useAuth();
+  const { user, isAdmin, loading, adminLoading, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -52,14 +53,17 @@ export default function Admin() {
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
 
       <main className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">
-            Overview, inventory, products, and customer orders.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">
+              Signed in as {user.email}. Manage orders, stock, and products.
+            </p>
+          </div>
         </div>
 
         <DashboardStats />
+        <RecentActivity />
 
         <Tabs defaultValue="orders" className="w-full">
           <TabsList className="rounded-full h-11 p-1 mb-6 bg-muted/80">
@@ -85,10 +89,7 @@ export default function Admin() {
             <ProductTable />
           </TabsContent>
 
-          <TabsContent value="overview" className="mt-0 space-y-8">
-            <p className="text-sm text-muted-foreground">
-              Quick view of both sections. Use the tabs above to focus on Orders or Products.
-            </p>
+          <TabsContent value="overview" className="mt-0 space-y-10">
             <OrdersList />
             <ProductTable />
           </TabsContent>

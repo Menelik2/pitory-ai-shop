@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -13,8 +13,13 @@ import {
   Search,
   Trash2,
   MessageCircle,
+  Download,
+  Copy,
+  Printer,
+  CheckCheck,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { copyText, downloadCsv } from "@/lib/adminUtils";
 
 interface ShippingAddress {
   customer_name?: string;
@@ -47,9 +52,14 @@ export function OrdersList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] =
     useState<(typeof STATUS_FILTERS)[number]>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [newCount, setNewCount] = useState(0);
+  const knownIds = useRef<Set<string>>(new Set());
+  const firstLoad = useRef(true);
 
-  const fetchOrders = async () => {
-    setLoading(true);
+  const fetchOrders = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     try {
       const { data, error } = await supabase
         .from("orders")
@@ -72,28 +82,59 @@ export function OrdersList() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setOrders((data as unknown as Order[]) || []);
+      const list = (data as unknown as Order[]) || [];
+
+      if (!firstLoad.current) {
+        const fresh = list.filter((o) => !knownIds.current.has(o.id));
+        if (fresh.length > 0) {
+          setNewCount((c) => c + fresh.length);
+          toast({
+            title: `${fresh.length} new order${fresh.length > 1 ? "s" : ""}`,
+            description: "Refresh the list or check Pending.",
+          });
+        }
+      }
+      firstLoad.current = false;
+      knownIds.current = new Set(list.map((o) => o.id));
+      setOrders(list);
     } catch (err: any) {
       console.error("Error loading orders:", err);
-      toast({
-        title: "Could not load orders",
-        description: err?.message || "Check Supabase RLS policies for orders.",
-        variant: "destructive",
-      });
+      if (!silent) {
+        toast({
+          title: "Could not load orders",
+          description: err?.message || "Check Supabase RLS policies for orders.",
+          variant: "destructive",
+        });
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+    const t = setInterval(() => fetchOrders(true), 30000);
+    return () => clearInterval(t);
+  }, [fetchOrders]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return orders.filter((o) => {
       const status = o.status || "pending";
       if (statusFilter !== "all" && status !== statusFilter) return false;
+
+      const d = new Date(o.created_at);
+      if (dateFrom) {
+        const from = new Date(dateFrom);
+        from.setHours(0, 0, 0, 0);
+        if (d < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        if (d > to) return false;
+      }
+
       if (!q) return true;
       const addr = (o.shipping_address || {}) as ShippingAddress;
       return (
@@ -103,20 +144,62 @@ export function OrdersList() {
         o.id.toLowerCase().includes(q)
       );
     });
-  }, [orders, search, statusFilter]);
+  }, [orders, search, statusFilter, dateFrom, dateTo]);
 
-  const updateStatus = async (orderId: string, status: string) => {
+  const deductStock = async (order: Order) => {
+    const items = order.order_items || [];
+    for (const item of items) {
+      if (!item.product_id) continue;
+      const { data: prod } = await supabase
+        .from("products")
+        .select("stock_quantity")
+        .eq("id", item.product_id)
+        .maybeSingle();
+      if (!prod) continue;
+      const next = Math.max(0, (prod.stock_quantity || 0) - item.quantity);
+      await supabase
+        .from("products")
+        .update({ stock_quantity: next })
+        .eq("id", item.product_id);
+    }
+  };
+
+  const updateStatus = async (orderId: string, status: string, order?: Order) => {
     try {
       const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
       if (error) throw error;
+
+      // Deduct stock when confirming for the first time
+      if (status === "confirmed" && order && (order.status === "pending" || !order.status)) {
+        await deductStock(order);
+      }
+
       setOrders((prev) => prev.map((o) => (o.id === orderId ? { ...o, status } : o)));
-      toast({ title: "Status updated", description: `Order marked as ${status}.` });
+      toast({
+        title: "Status updated",
+        description:
+          status === "confirmed"
+            ? "Order confirmed and stock reduced."
+            : `Order marked as ${status}.`,
+      });
     } catch (err: any) {
       toast({
         title: "Update failed",
         description: err?.message || "Could not update order status.",
         variant: "destructive",
       });
+    }
+  };
+
+  const bulkConfirmPending = async () => {
+    const pending = filtered.filter((o) => o.status === "pending" || !o.status);
+    if (pending.length === 0) {
+      toast({ title: "No pending orders in this view" });
+      return;
+    }
+    if (!confirm(`Confirm ${pending.length} pending order(s)? Stock will be deducted.`)) return;
+    for (const o of pending) {
+      await updateStatus(o.id, "confirmed", o);
     }
   };
 
@@ -130,10 +213,60 @@ export function OrdersList() {
     } catch (err: any) {
       toast({
         title: "Delete failed",
-        description: err?.message || "Could not delete order. Admin DELETE policy may be needed.",
+        description: err?.message || "Could not delete order.",
         variant: "destructive",
       });
     }
+  };
+
+  const exportCsv = () => {
+    const rows: string[][] = [
+      ["Order ID", "Date", "Status", "Customer", "Location", "Phone", "Total", "Items"],
+    ];
+    filtered.forEach((o) => {
+      const addr = (o.shipping_address || {}) as ShippingAddress;
+      const items = (o.order_items || [])
+        .map((i) => `${i.products?.name || "Product"} x${i.quantity}`)
+        .join("; ");
+      rows.push([
+        o.id,
+        new Date(o.created_at).toISOString(),
+        o.status || "pending",
+        addr.customer_name || "",
+        addr.location || "",
+        addr.phone || "",
+        String(o.total_amount),
+        items,
+      ]);
+    });
+    downloadCsv(`orders-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    toast({ title: "CSV downloaded", description: `${filtered.length} orders exported.` });
+  };
+
+  const printOrder = (order: Order) => {
+    const addr = (order.shipping_address || {}) as ShippingAddress;
+    const itemsHtml = (order.order_items || [])
+      .map(
+        (i) =>
+          `<tr><td>${i.products?.name || "Product"}</td><td>${i.quantity}</td><td>$${(i.unit_price * i.quantity).toLocaleString()}</td></tr>`
+      )
+      .join("");
+    const w = window.open("", "_blank");
+    if (!w) return;
+    w.document.write(`<!DOCTYPE html><html><head><title>Order ${order.id.slice(0, 8)}</title>
+      <style>body{font-family:system-ui;padding:24px}table{width:100%;border-collapse:collapse}td,th{border:1px solid #ddd;padding:8px;text-align:left}</style>
+      </head><body>
+      <h1>Pitory Order #${order.id.slice(0, 8)}</h1>
+      <p>${new Date(order.created_at).toLocaleString()}</p>
+      <p><b>Customer:</b> ${addr.customer_name || "—"}<br/>
+      <b>Location:</b> ${addr.location || "—"}<br/>
+      <b>Phone:</b> ${addr.phone || "—"}</p>
+      <table><thead><tr><th>Item</th><th>Qty</th><th>Price</th></tr></thead>
+      <tbody>${itemsHtml}</tbody></table>
+      <p><b>Total: $${Number(order.total_amount).toLocaleString()}</b></p>
+      <p>Status: ${order.status || "pending"}</p>
+      <script>window.print()</script></body></html>`);
+    w.document.close();
   };
 
   const statusColor = (status: string | null) => {
@@ -164,25 +297,64 @@ export function OrdersList() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h2 className="text-2xl font-semibold tracking-tight">Customer Orders</h2>
+          <h2 className="text-2xl font-semibold tracking-tight flex items-center gap-2">
+            Customer Orders
+            {newCount > 0 && (
+              <Badge className="bg-primary text-primary-foreground">{newCount} new</Badge>
+            )}
+          </h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Search, filter, confirm, and contact customers.
+            Search, filter, export, confirm (auto stock), call & WhatsApp.
           </p>
         </div>
-        <Button variant="outline" size="sm" className="rounded-full" onClick={fetchOrders}>
-          <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
-          Refresh
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="rounded-full" onClick={exportCsv}>
+            <Download className="h-3.5 w-3.5 mr-1.5" />
+            Export CSV
+          </Button>
+          <Button variant="outline" size="sm" className="rounded-full" onClick={bulkConfirmPending}>
+            <CheckCheck className="h-3.5 w-3.5 mr-1.5" />
+            Confirm all pending
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            onClick={() => {
+              setNewCount(0);
+              fetchOrders();
+            }}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-2 mb-6">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+      <div className="flex flex-col gap-2 mb-6">
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search name, phone, location, order ID…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 rounded-full"
+            />
+          </div>
           <Input
-            placeholder="Search name, phone, location, order ID…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9 rounded-full"
+            type="date"
+            value={dateFrom}
+            onChange={(e) => setDateFrom(e.target.value)}
+            className="h-9 rounded-full w-full sm:w-auto"
+            title="From date"
+          />
+          <Input
+            type="date"
+            value={dateTo}
+            onChange={(e) => setDateTo(e.target.value)}
+            className="h-9 rounded-full w-full sm:w-auto"
+            title="To date"
           />
         </div>
         <div className="flex flex-wrap gap-1.5">
@@ -234,38 +406,63 @@ export function OrdersList() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                     <div className="flex items-start gap-2">
                       <User className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                           Name
                         </div>
-                        <div className="font-medium">{addr.customer_name || "—"}</div>
+                        <div className="font-medium flex items-center gap-1">
+                          <span className="truncate">{addr.customer_name || "—"}</span>
+                          {addr.customer_name && (
+                            <button
+                              type="button"
+                              className="p-0.5 text-muted-foreground hover:text-foreground"
+                              onClick={async () => {
+                                if (await copyText(addr.customer_name!))
+                                  toast({ title: "Name copied" });
+                              }}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                           Location
                         </div>
-                        <div className="font-medium">{addr.location || "—"}</div>
+                        <div className="font-medium truncate">{addr.location || "—"}</div>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <Phone className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
-                      <div>
+                      <div className="min-w-0">
                         <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
                           Phone
                         </div>
-                        {addr.phone ? (
-                          <a
-                            href={`tel:${addr.phone}`}
-                            className="font-medium text-primary hover:underline"
-                          >
-                            {addr.phone}
-                          </a>
-                        ) : (
-                          <div className="font-medium">—</div>
-                        )}
+                        <div className="font-medium flex items-center gap-1">
+                          {addr.phone ? (
+                            <>
+                              <a href={`tel:${addr.phone}`} className="text-primary hover:underline">
+                                {addr.phone}
+                              </a>
+                              <button
+                                type="button"
+                                className="p-0.5 text-muted-foreground hover:text-foreground"
+                                onClick={async () => {
+                                  if (await copyText(addr.phone!))
+                                    toast({ title: "Phone copied" });
+                                }}
+                              >
+                                <Copy className="h-3 w-3" />
+                              </button>
+                            </>
+                          ) : (
+                            "—"
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -296,9 +493,9 @@ export function OrdersList() {
                       <Button
                         size="sm"
                         className="rounded-full"
-                        onClick={() => updateStatus(order.id, "confirmed")}
+                        onClick={() => updateStatus(order.id, "confirmed", order)}
                       >
-                        Confirm
+                        Confirm + stock
                       </Button>
                     )}
                     {(order.status === "pending" || order.status === "confirmed") && (
@@ -306,7 +503,7 @@ export function OrdersList() {
                         size="sm"
                         variant="outline"
                         className="rounded-full"
-                        onClick={() => updateStatus(order.id, "completed")}
+                        onClick={() => updateStatus(order.id, "completed", order)}
                       >
                         Complete
                       </Button>
@@ -316,7 +513,7 @@ export function OrdersList() {
                         size="sm"
                         variant="ghost"
                         className="rounded-full text-destructive"
-                        onClick={() => updateStatus(order.id, "cancelled")}
+                        onClick={() => updateStatus(order.id, "cancelled", order)}
                       >
                         Cancel
                       </Button>
@@ -339,6 +536,15 @@ export function OrdersList() {
                     )}
                     <Button
                       size="sm"
+                      variant="outline"
+                      className="rounded-full"
+                      onClick={() => printOrder(order)}
+                    >
+                      <Printer className="h-3.5 w-3.5 mr-1" />
+                      Print
+                    </Button>
+                    <Button
+                      size="sm"
                       variant="ghost"
                       className="rounded-full text-muted-foreground ml-auto"
                       onClick={() => {
@@ -356,7 +562,7 @@ export function OrdersList() {
       )}
 
       <p className="text-xs text-muted-foreground mt-4">
-        Showing {filtered.length} of {orders.length} orders
+        Showing {filtered.length} of {orders.length} orders · Auto-refresh every 30s
       </p>
     </div>
   );
