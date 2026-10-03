@@ -6,15 +6,16 @@ import { DashboardStats } from "@/components/admin/DashboardStats";
 import { RecentActivity } from "@/components/admin/RecentActivity";
 import { ProductTable } from "@/components/admin/ProductTable";
 import { OrdersList } from "@/components/admin/OrdersList";
+import { CommentsList } from "@/components/admin/CommentsList";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
-import { Package, ShoppingBag, LayoutDashboard } from "lucide-react";
+import { Package, ShoppingBag, LayoutDashboard, MessageSquare } from "lucide-react";
 
 export default function Admin() {
   const { getTotalItems } = useCart();
-  const { user, isAdmin, loading, adminLoading, signOut } = useAuth();
+  const { user, isAdmin, loading, adminLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -57,7 +58,7 @@ export default function Admin() {
           <div>
             <h1 className="text-3xl font-semibold tracking-tight mb-2">Admin Dashboard</h1>
             <p className="text-muted-foreground">
-              Signed in as {user.email}. Manage orders, stock, and products.
+              Signed in as {user.email}. Manage orders, products, and comments.
             </p>
           </div>
         </div>
@@ -66,7 +67,7 @@ export default function Admin() {
         <RecentActivity />
 
         <Tabs defaultValue="orders" className="w-full">
-          <TabsList className="rounded-full h-11 p-1 mb-6 bg-muted/80">
+          <TabsList className="rounded-full h-11 p-1 mb-6 bg-muted/80 flex-wrap h-auto gap-1">
             <TabsTrigger value="orders" className="rounded-full gap-1.5 px-4">
               <ShoppingBag className="h-3.5 w-3.5" />
               Orders
@@ -74,6 +75,10 @@ export default function Admin() {
             <TabsTrigger value="products" className="rounded-full gap-1.5 px-4">
               <Package className="h-3.5 w-3.5" />
               Products
+            </TabsTrigger>
+            <TabsTrigger value="comments" className="rounded-full gap-1.5 px-4">
+              <MessageSquare className="h-3.5 w-3.5" />
+              Comments
             </TabsTrigger>
             <TabsTrigger value="overview" className="rounded-full gap-1.5 px-4">
               <LayoutDashboard className="h-3.5 w-3.5" />
@@ -89,9 +94,14 @@ export default function Admin() {
             <ProductTable />
           </TabsContent>
 
+          <TabsContent value="comments" className="mt-0">
+            <CommentsList />
+          </TabsContent>
+
           <TabsContent value="overview" className="mt-0 space-y-10">
             <OrdersList />
             <ProductTable />
+            <CommentsList />
           </TabsContent>
         </Tabs>
       </main>
