@@ -18,6 +18,7 @@ import { Minus, Plus, Trash2, Phone, MapPin, User } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { notifyAdminOfOrder } from "@/lib/notifyAdminOrder";
 
 function newId() {
   if (typeof crypto !== "undefined" && crypto.randomUUID) {
@@ -90,7 +91,12 @@ export default function Cart() {
         phone: tel,
       };
 
-      // Insert without .select() so we only need INSERT RLS (not SELECT)
+      const itemsSnapshot = cartItems.map((item) => ({
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      }));
+
       const { error: orderError } = await supabase.from("orders").insert({
         id: orderId,
         total_amount: totalPrice,
@@ -114,6 +120,16 @@ export default function Cart() {
       const { error: itemsError } = await supabase.from("order_items").insert(orderItems);
 
       if (itemsError) throw itemsError;
+
+      // Notify admin by email (non-blocking)
+      void notifyAdminOfOrder({
+        orderId,
+        customerName: name,
+        location: loc,
+        phone: tel,
+        total: totalPrice,
+        items: itemsSnapshot,
+      });
 
       clearCart();
       setCheckoutOpen(false);
