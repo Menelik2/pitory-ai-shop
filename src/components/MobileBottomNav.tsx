@@ -1,10 +1,28 @@
 import { Home, Monitor, Laptop, Headphones } from "lucide-react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
+
+const CATEGORY_TABS = [
+  { key: "home", label: "Home", href: "/", icon: Home, category: null },
+  { key: "desktop", label: "Desktop", href: "/?category=Desktop", icon: Monitor, category: "Desktop" },
+  { key: "laptop", label: "Laptop", href: "/?category=Laptop", icon: Laptop, category: "Laptop" },
+  { key: "accessories", label: "Accessories", href: "/?category=Accessories", icon: Headphones, category: "Accessories" },
+] as const;
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
 
-  const isActive = (path: string) => location.pathname === path;
+  const activeCategory = searchParams.get("category");
+  const isOnHome = location.pathname === "/";
+
+  const isTabActive = (category: string | null) => {
+    if (!isOnHome) return false;
+    if (category === null) {
+      // Home is active only when no category filter is applied
+      return !activeCategory || activeCategory === "All";
+    }
+    return activeCategory === category;
+  };
 
   return (
     <div
@@ -21,39 +39,21 @@ export function MobileBottomNav() {
       }}
     >
       <div className="flex items-center justify-around py-1.5">
-        <Link
-          to="/"
-          className={`flex flex-col items-center p-2.5 rounded-2xl transition-colors min-w-[64px] ${
-            isActive("/") ? "text-primary" : "text-muted-foreground"
-          }`}
-        >
-          <Home size={22} strokeWidth={isActive("/") ? 2.25 : 1.75} />
-          <span className="text-[10px] mt-1 font-medium">Home</span>
-        </Link>
-
-        <Link
-          to="/?category=Desktop"
-          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
-        >
-          <Monitor size={22} strokeWidth={1.75} />
-          <span className="text-[10px] mt-1 font-medium">Desktop</span>
-        </Link>
-
-        <Link
-          to="/?category=Laptop"
-          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
-        >
-          <Laptop size={22} strokeWidth={1.75} />
-          <span className="text-[10px] mt-1 font-medium">Laptop</span>
-        </Link>
-
-        <Link
-          to="/?category=Accessories"
-          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
-        >
-          <Headphones size={22} strokeWidth={1.75} />
-          <span className="text-[10px] mt-1 font-medium">Accessories</span>
-        </Link>
+        {CATEGORY_TABS.map(({ key, label, href, icon: Icon, category }) => {
+          const active = isTabActive(category);
+          return (
+            <Link
+              key={key}
+              to={href}
+              className={`flex flex-col items-center p-2.5 rounded-2xl transition-colors min-w-[64px] ${
+                active ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              <Icon size={22} strokeWidth={active ? 2.25 : 1.75} />
+              <span className="text-[10px] mt-1 font-medium">{label}</span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );
