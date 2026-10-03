@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { copyText, downloadCsv } from "@/lib/adminUtils";
+import { deleteOrderFromDatabase } from "@/lib/deleteOrder";
 
 interface ShippingAddress {
   customer_name?: string;
@@ -169,7 +170,6 @@ export function OrdersList() {
       const { error } = await supabase.from("orders").update({ status }).eq("id", orderId);
       if (error) throw error;
 
-      // Deduct stock when confirming for the first time
       if (status === "confirmed" && order && (order.status === "pending" || !order.status)) {
         await deductStock(order);
       }
@@ -205,15 +205,21 @@ export function OrdersList() {
 
   const deleteOrder = async (orderId: string) => {
     try {
-      await supabase.from("order_items").delete().eq("order_id", orderId);
-      const { error } = await supabase.from("orders").delete().eq("id", orderId);
-      if (error) throw error;
+      await deleteOrderFromDatabase(orderId);
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
-      toast({ title: "Order deleted" });
+      knownIds.current.delete(orderId);
+      toast({
+        title: "Order deleted",
+        description: "Removed completely from the database.",
+      });
     } catch (err: any) {
+      const msg = err?.message || "Could not delete order.";
       toast({
         title: "Delete failed",
-        description: err?.message || "Could not delete order.",
+        description:
+          msg.includes("policy") || msg.includes("0 rows")
+            ? "Permission blocked. Run supabase/orders_delete_policy.sql in Supabase SQL Editor."
+            : msg,
         variant: "destructive",
       });
     }
@@ -548,7 +554,8 @@ export function OrdersList() {
                       variant="ghost"
                       className="rounded-full text-muted-foreground ml-auto"
                       onClick={() => {
-                        if (confirm("Delete this order permanently?")) deleteOrder(order.id);
+                        if (confirm("Delete this order permanently from the database?"))
+                          deleteOrder(order.id);
                       }}
                     >
                       <Trash2 className="h-3.5 w-3.5" />
