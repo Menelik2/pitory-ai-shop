@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { InventoryStats } from "@/components/admin/InventoryStats";
 import { ProductTable } from "@/components/admin/ProductTable";
+import { OrdersList } from "@/components/admin/OrdersList";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -15,7 +16,6 @@ export default function Admin() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Wait until auth + admin role are fully resolved
     if (loading || adminLoading) return;
 
     if (!user) {
@@ -51,14 +51,15 @@ export default function Admin() {
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-semibold tracking-tight mb-2">Inventory Manager</h1>
+          <h1 className="text-3xl font-semibold tracking-tight mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            An overview of your current product inventory and value.
+            Inventory, products, and customer orders.
           </p>
         </div>
 
         <InventoryStats />
         <ProductTable />
+        <OrdersList />
       </main>
 
       <Footer />
