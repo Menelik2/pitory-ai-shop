@@ -22,11 +22,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Edit, Trash2, Search, RefreshCw } from "lucide-react";
+import { Plus, Edit, Trash2, Search, RefreshCw, Download, Star } from "lucide-react";
 import { ProductForm } from "./ProductForm";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { categories } from "@/data/mockProducts";
+import { downloadCsv } from "@/lib/adminUtils";
 
 interface DBProduct {
   id: string;
@@ -38,6 +39,7 @@ interface DBProduct {
   stock_quantity: number;
   image_urls: string[];
   description: string;
+  featured?: boolean | null;
 }
 
 interface FormProduct {
@@ -58,6 +60,8 @@ interface FormProduct {
   specifications?: Record<string, string>;
 }
 
+type SortKey = "newest" | "name" | "price_asc" | "price_desc" | "stock_asc" | "stock_desc";
+
 export function ProductTable() {
   const [products, setProducts] = useState<DBProduct[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<FormProduct | undefined>();
@@ -66,6 +70,7 @@ export function ProductTable() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [stockFilter, setStockFilter] = useState<"all" | "low" | "out">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("newest");
 
   useEffect(() => {
     fetchProducts();
@@ -94,7 +99,7 @@ export function ProductTable() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return products.filter((p) => {
+    let list = products.filter((p) => {
       if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
       const stock = p.stock_quantity ?? 0;
       if (stockFilter === "low" && !(stock > 0 && stock <= 3)) return false;
@@ -106,7 +111,29 @@ export function ProductTable() {
         p.category?.toLowerCase().includes(q)
       );
     });
-  }, [products, search, categoryFilter, stockFilter]);
+
+    list = [...list];
+    switch (sortKey) {
+      case "name":
+        list.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+        break;
+      case "price_asc":
+        list.sort((a, b) => (a.price || 0) - (b.price || 0));
+        break;
+      case "price_desc":
+        list.sort((a, b) => (b.price || 0) - (a.price || 0));
+        break;
+      case "stock_asc":
+        list.sort((a, b) => (a.stock_quantity || 0) - (b.stock_quantity || 0));
+        break;
+      case "stock_desc":
+        list.sort((a, b) => (b.stock_quantity || 0) - (a.stock_quantity || 0));
+        break;
+      default:
+        break;
+    }
+    return list;
+  }, [products, search, categoryFilter, stockFilter, sortKey]);
 
   const handleAddProduct = () => {
     setSelectedProduct(undefined);
@@ -140,13 +167,9 @@ export function ProductTable() {
       const { error } = await supabase.from("products").delete().eq("id", productId);
       if (error) throw error;
       setProducts((prev) => prev.filter((p) => p.id !== productId));
-      toast({ title: "Product deleted", description: "Removed successfully." });
+      toast({ title: "Product deleted" });
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to delete product",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to delete product", variant: "destructive" });
     }
   };
 
@@ -162,12 +185,48 @@ export function ProductTable() {
         prev.map((p) => (p.id === product.id ? { ...p, stock_quantity: next } : p))
       );
     } catch {
+      toast({ title: "Error", description: "Could not update stock", variant: "destructive" });
+    }
+  };
+
+  const toggleFeatured = async (product: DBProduct) => {
+    const next = !product.featured;
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ featured: next })
+        .eq("id", product.id);
+      if (error) throw error;
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, featured: next } : p))
+      );
+      toast({ title: next ? "Marked featured" : "Removed from featured" });
+    } catch {
       toast({
         title: "Error",
-        description: "Could not update stock",
+        description: "Could not update featured flag",
         variant: "destructive",
       });
     }
+  };
+
+  const exportCsv = () => {
+    const rows: string[][] = [
+      ["ID", "Name", "Brand", "Category", "Price", "Stock", "Featured"],
+    ];
+    filtered.forEach((p) => {
+      rows.push([
+        p.id,
+        p.name,
+        p.brand || "",
+        p.category,
+        String(p.price),
+        String(p.stock_quantity ?? 0),
+        p.featured ? "yes" : "no",
+      ]);
+    });
+    downloadCsv(`products-${new Date().toISOString().slice(0, 10)}.csv`, rows);
+    toast({ title: "CSV downloaded", description: `${filtered.length} products exported.` });
   };
 
   const handleSaveProduct = async (formData: any) => {
@@ -214,17 +273,17 @@ export function ProductTable() {
       setIsFormOpen(false);
       fetchProducts();
     } catch {
-      toast({
-        title: "Error",
-        description: "Failed to save product",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Failed to save product", variant: "destructive" });
     }
   };
 
   const stockBadge = (qty: number) => {
     if (qty <= 0)
-      return <Badge variant="destructive" className="text-[10px]">Out</Badge>;
+      return (
+        <Badge variant="destructive" className="text-[10px]">
+          Out
+        </Badge>
+      );
     if (qty <= 3)
       return (
         <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-200" variant="outline">
@@ -245,10 +304,14 @@ export function ProductTable() {
           <div>
             <CardTitle className="text-xl">Product Management</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Create, edit, search, and manage stock.
+              Search, sort, export, feature, and manage stock.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="rounded-full" onClick={exportCsv}>
+              <Download className="h-3.5 w-3.5 mr-1.5" />
+              Export CSV
+            </Button>
             <Button variant="outline" size="sm" className="rounded-full" onClick={fetchProducts}>
               <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
               Refresh
@@ -260,8 +323,8 @@ export function ProductTable() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-2 pt-4">
-          <div className="relative flex-1">
+        <div className="flex flex-col sm:flex-row gap-2 pt-4 flex-wrap">
+          <div className="relative flex-1 min-w-[160px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
             <Input
               placeholder="Search name, brand, category…"
@@ -289,6 +352,18 @@ export function ProductTable() {
             <option value="all">All stock</option>
             <option value="low">Low stock (≤3)</option>
             <option value="out">Out of stock</option>
+          </select>
+          <select
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            className="h-9 rounded-full border border-input bg-background px-3 text-sm"
+          >
+            <option value="newest">Newest</option>
+            <option value="name">Name A–Z</option>
+            <option value="price_asc">Price ↑</option>
+            <option value="price_desc">Price ↓</option>
+            <option value="stock_asc">Stock ↑</option>
+            <option value="stock_desc">Stock ↓</option>
           </select>
         </div>
       </CardHeader>
@@ -324,8 +399,13 @@ export function ProductTable() {
                         className="w-12 h-12 object-cover rounded-lg"
                       />
                     </TableCell>
-                    <TableCell className="font-medium max-w-[140px] truncate">
-                      {product.name}
+                    <TableCell className="font-medium max-w-[140px]">
+                      <div className="flex items-center gap-1 truncate">
+                        {product.featured && (
+                          <Star className="h-3 w-3 fill-amber-400 text-amber-400 shrink-0" />
+                        )}
+                        <span className="truncate">{product.name}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="hidden md:table-cell">{product.brand}</TableCell>
                     <TableCell>
@@ -366,6 +446,21 @@ export function ProductTable() {
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-full h-8 w-8 p-0"
+                          title="Toggle featured"
+                          onClick={() => toggleFeatured(product)}
+                        >
+                          <Star
+                            className={`h-3.5 w-3.5 ${
+                              product.featured
+                                ? "fill-amber-400 text-amber-400"
+                                : "text-muted-foreground"
+                            }`}
+                          />
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"
