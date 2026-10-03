@@ -30,7 +30,16 @@ export function Hero() {
             <Button
               variant="outline"
               size="lg"
-              className="rounded-full text-[15px] px-8 h-12 bg-white/10 border-white/25 text-white hover:bg-white/20 backdrop-blur-sm font-medium"
+              className="
+                rounded-full text-[15px] px-8 h-12 font-medium
+                text-white border-white/30
+                bg-white/15
+                backdrop-blur-xl backdrop-saturate-150
+                hover:bg-white/25
+              "
+              style={{
+                WebkitBackdropFilter: "saturate(150%) blur(16px)",
+              }}
             >
               091 826 6383
             </Button>

@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -106,7 +106,7 @@ export function PCBuilderAssistant() {
     <section className="py-16 px-4 bg-[#f5f5f7]">
       <div className="mx-auto max-w-5xl">
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 mb-4">
+          <div className="inline-flex items-center justify-center h-12 w-12 rounded-2xl bg-primary/10 mb-4 backdrop-blur-sm">
             <Sparkles className="h-6 w-6 text-primary" />
           </div>
           <h2 className="text-3xl md:text-4xl font-semibold tracking-tight text-foreground mb-2">
@@ -117,7 +117,18 @@ export function PCBuilderAssistant() {
           </p>
         </div>
 
-        <Card className="bg-white border border-black/[0.04] shadow-[0_1px_2px_rgba(0,0,0,0.03),0_12px_40px_rgba(0,0,0,0.06)] rounded-3xl overflow-hidden">
+        <Card
+          className="
+            border border-white/60
+            shadow-[0_1px_2px_rgba(0,0,0,0.03),0_12px_40px_rgba(0,0,0,0.06)]
+            rounded-3xl overflow-hidden
+            bg-white/75
+            backdrop-blur-[24px] backdrop-saturate-[180%]
+          "
+          style={{
+            WebkitBackdropFilter: "saturate(180%) blur(24px)",
+          }}
+        >
           <CardContent className="p-6 md:p-8 space-y-8">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="space-y-2">
@@ -131,7 +142,7 @@ export function PCBuilderAssistant() {
                     placeholder="CPU, RAM, brand..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10 h-12 rounded-xl border-black/[0.06] bg-[#f5f5f7] focus-visible:ring-primary/20 focus-visible:border-primary/30"
+                    className="pl-10 h-12 rounded-xl border-black/[0.06] bg-white/60 backdrop-blur-sm focus-visible:ring-primary/20 focus-visible:border-primary/30"
                   />
                 </div>
               </div>
@@ -141,7 +152,7 @@ export function PCBuilderAssistant() {
                   Use case
                 </Label>
                 <Select value={useCase} onValueChange={(v) => setUseCase(v as UseCase)}>
-                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-[#f5f5f7]">
+                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-white/60 backdrop-blur-sm">
                     <SelectValue placeholder="What will you use it for?" />
                   </SelectTrigger>
                   <SelectContent>
@@ -159,7 +170,7 @@ export function PCBuilderAssistant() {
                   CPU preference
                 </Label>
                 <Select value={cpuBrand} onValueChange={(v) => setCpuBrand(v as CpuBrand)}>
-                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-[#f5f5f7]">
+                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-white/60 backdrop-blur-sm">
                     <SelectValue placeholder="Intel or AMD" />
                   </SelectTrigger>
                   <SelectContent>
@@ -175,7 +186,7 @@ export function PCBuilderAssistant() {
                   Minimum RAM
                 </Label>
                 <Select value={String(minRam)} onValueChange={(v) => setMinRam(Number(v))}>
-                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-[#f5f5f7]">
+                  <SelectTrigger className="h-12 rounded-xl border-black/[0.06] bg-white/60 backdrop-blur-sm">
                     <SelectValue placeholder="Any amount" />
                   </SelectTrigger>
                   <SelectContent>
@@ -189,7 +200,7 @@ export function PCBuilderAssistant() {
               </div>
             </div>
 
-            <div className="space-y-3 rounded-2xl bg-[#f5f5f7] p-5">
+            <div className="space-y-3 rounded-2xl bg-black/[0.03] backdrop-blur-sm p-5">
               <div className="flex items-center justify-between">
                 <Label className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
                   Max budget
@@ -223,7 +234,7 @@ export function PCBuilderAssistant() {
             </div>
 
             {rankedProducts.length === 0 ? (
-              <div className="text-center py-14 rounded-2xl bg-[#f5f5f7]">
+              <div className="text-center py-14 rounded-2xl bg-black/[0.03]">
                 <p className="text-foreground font-medium mb-1">No matches found</p>
                 <p className="text-sm text-muted-foreground">
                   Try raising your budget or adjusting filters.
@@ -236,9 +247,12 @@ export function PCBuilderAssistant() {
                     key={product.id}
                     className="
                       flex flex-col sm:flex-row overflow-hidden
-                      rounded-2xl border border-black/[0.04] bg-white
+                      rounded-2xl border border-black/[0.04]
+                      bg-white/70
+                      backdrop-blur-md
                       shadow-[0_1px_2px_rgba(0,0,0,0.02)]
                       transition-shadow duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.06)]
+                      hover:bg-white/90
                     "
                   >
                     <Link
@@ -251,7 +265,14 @@ export function PCBuilderAssistant() {
                         className="w-full h-full object-cover"
                       />
                       {index === 0 && (
-                        <Badge className="absolute top-2.5 left-2.5 bg-primary text-primary-foreground border-0 text-[10px] font-medium px-2.5 py-0.5 rounded-full">
+                        <Badge
+                          className="
+                            absolute top-2.5 left-2.5
+                            bg-primary/90 text-primary-foreground border-0
+                            text-[10px] font-medium px-2.5 py-0.5 rounded-full
+                            backdrop-blur-sm
+                          "
+                        >
                           Best match
                         </Badge>
                       )}
@@ -319,7 +340,7 @@ export function PCBuilderAssistant() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="rounded-full h-9 text-xs border-black/[0.08]"
+                          className="rounded-full h-9 text-xs border-black/[0.08] bg-white/50 backdrop-blur-sm"
                           asChild
                         >
                           <Link to={`/products/${product.id}`}>Details</Link>

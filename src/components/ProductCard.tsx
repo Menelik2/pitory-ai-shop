@@ -39,12 +39,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
         h-full flex flex-col
         max-w-sm mx-auto
         rounded-2xl overflow-hidden
-        bg-white
+        bg-white/80
+        backdrop-blur-xl
         border border-black/[0.04]
         shadow-[0_1px_2px_rgba(0,0,0,0.03),0_8px_24px_rgba(0,0,0,0.04)]
         transition-all duration-300 ease-out
         hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)]
         hover:-translate-y-1
+        hover:bg-white/95
       ">
         <CardHeader className="p-0">
           <div className="relative aspect-[4/3] overflow-hidden bg-[#f5f5f7]">
@@ -58,19 +60,28 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               "
             />
             <div className="absolute top-3 left-3 right-3 flex justify-between items-start">
-              <Badge className="
-                bg-white/90 text-foreground backdrop-blur-md
-                px-2.5 py-1 text-[11px] font-medium tracking-wide
-                rounded-full border-0 shadow-sm
-              ">
+              <Badge
+                className="
+                  px-2.5 py-1 text-[11px] font-medium tracking-wide
+                  rounded-full border-0 shadow-sm
+                  text-foreground
+                  bg-white/70
+                  backdrop-blur-md backdrop-saturate-150
+                "
+                style={{
+                  WebkitBackdropFilter: "saturate(150%) blur(12px)",
+                }}
+              >
                 {product.category}
               </Badge>
               {product.stock > 0 && product.stock <= 10 && (
-                <Badge className="
-                  bg-amber-50 text-amber-800
-                  px-2 py-1 text-[10px] font-medium
-                  rounded-full border-0
-                ">
+                <Badge
+                  className="
+                    px-2 py-1 text-[10px] font-medium rounded-full border-0
+                    bg-amber-50/90 text-amber-800
+                    backdrop-blur-md
+                  "
+                >
                   Low stock
                 </Badge>
               )}
@@ -94,7 +105,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               {displaySpecs.map(([key, value]) => (
                 <span
                   key={key}
-                  className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] bg-[#f5f5f7] text-muted-foreground"
+                  className="inline-flex items-center px-2 py-1 rounded-lg text-[11px] bg-black/[0.04] text-muted-foreground"
                 >
                   <span className="font-medium text-foreground/70 mr-1">{key}:</span>
                   {value}

@@ -7,40 +7,52 @@ export function MobileBottomNav() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border z-50 md:hidden">
-      <div className="flex items-center justify-around py-2">
+    <div
+      className="
+        fixed bottom-0 left-0 right-0 z-50 md:hidden
+        border-t border-black/[0.06]
+        bg-white/70
+        backdrop-blur-[20px] backdrop-saturate-[180%]
+        supports-[backdrop-filter]:bg-white/55
+      "
+      style={{
+        WebkitBackdropFilter: "saturate(180%) blur(20px)",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
+    >
+      <div className="flex items-center justify-around py-1.5">
         <Link
           to="/"
-          className={`flex flex-col items-center p-3 rounded-lg transition-colors ${
+          className={`flex flex-col items-center p-2.5 rounded-2xl transition-colors min-w-[64px] ${
             isActive("/") ? "text-primary" : "text-muted-foreground"
           }`}
         >
-          <Home size={24} />
-          <span className="text-xs mt-1">Home</span>
+          <Home size={22} strokeWidth={isActive("/") ? 2.25 : 1.75} />
+          <span className="text-[10px] mt-1 font-medium">Home</span>
         </Link>
 
         <Link
           to="/?category=Desktop"
-          className="flex flex-col items-center p-3 rounded-lg transition-colors text-muted-foreground"
+          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
         >
-          <Monitor size={24} />
-          <span className="text-xs mt-1">Desktop</span>
+          <Monitor size={22} strokeWidth={1.75} />
+          <span className="text-[10px] mt-1 font-medium">Desktop</span>
         </Link>
 
         <Link
           to="/?category=Laptop"
-          className="flex flex-col items-center p-3 rounded-lg transition-colors text-muted-foreground"
+          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
         >
-          <Laptop size={24} />
-          <span className="text-xs mt-1">Laptop</span>
+          <Laptop size={22} strokeWidth={1.75} />
+          <span className="text-[10px] mt-1 font-medium">Laptop</span>
         </Link>
 
         <Link
           to="/?category=Accessories"
-          className="flex flex-col items-center p-3 rounded-lg transition-colors text-muted-foreground"
+          className="flex flex-col items-center p-2.5 rounded-2xl transition-colors text-muted-foreground min-w-[64px]"
         >
-          <Headphones size={24} />
-          <span className="text-xs mt-1">Accessories</span>
+          <Headphones size={22} strokeWidth={1.75} />
+          <span className="text-[10px] mt-1 font-medium">Accessories</span>
         </Link>
       </div>
     </div>

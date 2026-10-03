@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Premium light design system — refined neutrals, soft depth, system blue accent */
+/* Premium light design system — refined neutrals, soft depth, Apple-style blur */
 
 @layer base {
   :root {
@@ -15,7 +15,6 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    /* Refined blue — premium but calm */
     --primary: 215 90% 45%;
     --primary-foreground: 0 0% 100%;
 
@@ -81,8 +80,37 @@
 }
 
 @layer utilities {
+  /* Apple-style frosted glass */
+  .glass {
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: saturate(180%) blur(20px);
+    -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .glass-thick {
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid rgba(0, 0, 0, 0.04);
+  }
+
+  .glass-thin {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: saturate(180%) blur(24px);
+    -webkit-backdrop-filter: saturate(180%) blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
   .glass-effect {
-    @apply bg-white/75 backdrop-blur-2xl border border-black/[0.04];
+    @apply glass;
   }
 
   .tech-gradient {

@@ -27,7 +27,18 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-black/[0.04] bg-white/80 backdrop-blur-2xl supports-[backdrop-filter]:bg-white/70">
+    <header
+      className="
+        sticky top-0 z-50 w-full
+        border-b border-black/[0.06]
+        bg-white/70
+        backdrop-blur-[20px] backdrop-saturate-[180%]
+        supports-[backdrop-filter]:bg-white/60
+      "
+      style={{
+        WebkitBackdropFilter: "saturate(180%) blur(20px)",
+      }}
+    >
       <div className="container mx-auto px-4 sm:px-6">
         <div className="flex h-14 md:h-16 items-center justify-between gap-4">
           <Link to="/" className="flex items-center shrink-0">
@@ -50,13 +61,20 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
 
           <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-sm mx-6">
             <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-3.5 w-3.5" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 z-10" />
               <Input
                 type="text"
                 placeholder="Search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 rounded-full border-black/[0.06] bg-[#f5f5f7] text-sm focus-visible:ring-primary/20"
+                className="
+                  pl-9 h-9 rounded-full text-sm
+                  border-black/[0.06]
+                  bg-black/[0.04]
+                  backdrop-blur-md
+                  focus-visible:ring-primary/20
+                  focus-visible:bg-white/80
+                "
               />
             </div>
           </form>
@@ -89,7 +107,12 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="rounded-full border-black/[0.08] h-9 text-[13px] font-medium"
+                    className="
+                      rounded-full h-9 text-[13px] font-medium
+                      border-black/[0.08]
+                      bg-white/50 backdrop-blur-md
+                      hover:bg-white/80
+                    "
                   >
                     <User className="h-3.5 w-3.5 mr-1.5" />
                     Sign In
@@ -105,7 +128,17 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                     <Menu className="h-5 w-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="w-80 bg-white border-l border-black/[0.04]">
+                <SheetContent
+                  side="right"
+                  className="
+                    w-80 border-l border-black/[0.06]
+                    bg-white/80
+                    backdrop-blur-[40px] backdrop-saturate-[180%]
+                  "
+                  style={{
+                    WebkitBackdropFilter: "saturate(180%) blur(40px)",
+                  }}
+                >
                   <div className="flex flex-col space-y-6 mt-8">
                     <form onSubmit={handleSearch} className="flex flex-col gap-2">
                       <Input
@@ -113,7 +146,7 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                         placeholder="Search computers..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="rounded-xl border-black/[0.06] bg-[#f5f5f7]"
+                        className="rounded-xl border-black/[0.06] bg-black/[0.04]"
                       />
                       <Button type="submit" size="sm" className="rounded-full">
                         Search
@@ -125,7 +158,7 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                         <Link
                           key={link.name}
                           to={link.href}
-                          className="px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-[#f5f5f7] transition-colors"
+                          className="px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-black/[0.04] transition-colors"
                           onClick={() => setIsOpen(false)}
                         >
                           {link.name}
