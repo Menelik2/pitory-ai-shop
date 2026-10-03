@@ -2,12 +2,14 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { InventoryStats } from "@/components/admin/InventoryStats";
+import { DashboardStats } from "@/components/admin/DashboardStats";
 import { ProductTable } from "@/components/admin/ProductTable";
 import { OrdersList } from "@/components/admin/OrdersList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { Package, ShoppingBag, LayoutDashboard } from "lucide-react";
 
 export default function Admin() {
   const { getTotalItems } = useCart();
@@ -53,13 +55,44 @@ export default function Admin() {
         <div className="mb-8">
           <h1 className="text-3xl font-semibold tracking-tight mb-2">Admin Dashboard</h1>
           <p className="text-muted-foreground">
-            Inventory, products, and customer orders.
+            Overview, inventory, products, and customer orders.
           </p>
         </div>
 
-        <InventoryStats />
-        <ProductTable />
-        <OrdersList />
+        <DashboardStats />
+
+        <Tabs defaultValue="orders" className="w-full">
+          <TabsList className="rounded-full h-11 p-1 mb-6 bg-muted/80">
+            <TabsTrigger value="orders" className="rounded-full gap-1.5 px-4">
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Orders
+            </TabsTrigger>
+            <TabsTrigger value="products" className="rounded-full gap-1.5 px-4">
+              <Package className="h-3.5 w-3.5" />
+              Products
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="rounded-full gap-1.5 px-4">
+              <LayoutDashboard className="h-3.5 w-3.5" />
+              Overview
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="orders" className="mt-0">
+            <OrdersList />
+          </TabsContent>
+
+          <TabsContent value="products" className="mt-0">
+            <ProductTable />
+          </TabsContent>
+
+          <TabsContent value="overview" className="mt-0 space-y-8">
+            <p className="text-sm text-muted-foreground">
+              Quick view of both sections. Use the tabs above to focus on Orders or Products.
+            </p>
+            <OrdersList />
+            <ProductTable />
+          </TabsContent>
+        </Tabs>
       </main>
 
       <Footer />

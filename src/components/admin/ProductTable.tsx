@@ -1,14 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Edit, Trash2, Search, RefreshCw } from "lucide-react";
 import { ProductForm } from "./ProductForm";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { categories } from "@/data/mockProducts";
 
-// Database Product interface
 interface DBProduct {
   id: string;
   name: string;
@@ -21,7 +40,6 @@ interface DBProduct {
   description: string;
 }
 
-// Form Product interface for compatibility with ProductForm
 interface FormProduct {
   id: string;
   name: string;
@@ -45,21 +63,25 @@ export function ProductTable() {
   const [selectedProduct, setSelectedProduct] = useState<FormProduct | undefined>();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All");
+  const [stockFilter, setStockFilter] = useState<"all" | "low" | "out">("all");
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .from("products")
+        .select("*")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setProducts(data || []);
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to fetch products",
@@ -70,13 +92,28 @@ export function ProductTable() {
     }
   };
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return products.filter((p) => {
+      if (categoryFilter !== "All" && p.category !== categoryFilter) return false;
+      const stock = p.stock_quantity ?? 0;
+      if (stockFilter === "low" && !(stock > 0 && stock <= 3)) return false;
+      if (stockFilter === "out" && stock > 0) return false;
+      if (!q) return true;
+      return (
+        p.name?.toLowerCase().includes(q) ||
+        p.brand?.toLowerCase().includes(q) ||
+        p.category?.toLowerCase().includes(q)
+      );
+    });
+  }, [products, search, categoryFilter, stockFilter]);
+
   const handleAddProduct = () => {
     setSelectedProduct(undefined);
     setIsFormOpen(true);
   };
 
   const handleEditProduct = (product: DBProduct) => {
-    // Convert DB product to form product
     const formProduct: FormProduct = {
       id: product.id,
       name: product.name,
@@ -92,7 +129,7 @@ export function ProductTable() {
       image: product.image_urls?.[0] || "",
       images: product.image_urls || [""],
       stock: product.stock_quantity,
-      specifications: product.detailed_specs || {}
+      specifications: product.detailed_specs || {},
     };
     setSelectedProduct(formProduct);
     setIsFormOpen(true);
@@ -100,19 +137,11 @@ export function ProductTable() {
 
   const handleDeleteProduct = async (productId: string) => {
     try {
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', productId);
-
+      const { error } = await supabase.from("products").delete().eq("id", productId);
       if (error) throw error;
-      
-      setProducts(prev => prev.filter(p => p.id !== productId));
-      toast({
-        title: "Product deleted",
-        description: "The product has been successfully removed.",
-      });
-    } catch (error) {
+      setProducts((prev) => prev.filter((p) => p.id !== productId));
+      toast({ title: "Product deleted", description: "Removed successfully." });
+    } catch {
       toast({
         title: "Error",
         description: "Failed to delete product",
@@ -121,19 +150,38 @@ export function ProductTable() {
     }
   };
 
+  const adjustStock = async (product: DBProduct, delta: number) => {
+    const next = Math.max(0, (product.stock_quantity || 0) + delta);
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ stock_quantity: next })
+        .eq("id", product.id);
+      if (error) throw error;
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, stock_quantity: next } : p))
+      );
+    } catch {
+      toast({
+        title: "Error",
+        description: "Could not update stock",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleSaveProduct = async (formData: any) => {
     try {
-      // Convert form data to database format
-      // Use dynamic specifications if available, otherwise fall back to legacy fields
-      const specifications = formData.specifications && Object.keys(formData.specifications).length > 0 
-        ? formData.specifications 
-        : {
-            cpu: formData.cpu,
-            generation: formData.generation,
-            ram: formData.ram,
-            storage: formData.storage,
-            display: formData.display
-          };
+      const specifications =
+        formData.specifications && Object.keys(formData.specifications).length > 0
+          ? formData.specifications
+          : {
+              cpu: formData.cpu,
+              generation: formData.generation,
+              ram: formData.ram,
+              storage: formData.storage,
+              display: formData.display,
+            };
 
       const dbData = {
         name: formData.name,
@@ -144,39 +192,28 @@ export function ProductTable() {
         image_urls: formData.images || [formData.image],
         stock_quantity: formData.stock,
         detailed_specs: specifications,
-        slug: formData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+        slug: formData.name
+          .toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, ""),
       };
 
       if (selectedProduct) {
-        // Update existing product
         const { error } = await supabase
-          .from('products')
+          .from("products")
           .update(dbData)
-          .eq('id', selectedProduct.id);
-
+          .eq("id", selectedProduct.id);
         if (error) throw error;
-        
-        toast({
-          title: "Product updated",
-          description: "The product has been successfully updated.",
-        });
+        toast({ title: "Product updated" });
       } else {
-        // Add new product
-        const { error } = await supabase
-          .from('products')
-          .insert([dbData]);
-
+        const { error } = await supabase.from("products").insert([dbData]);
         if (error) throw error;
-        
-        toast({
-          title: "Product added",
-          description: "The product has been successfully added.",
-        });
+        toast({ title: "Product added" });
       }
-      
+
       setIsFormOpen(false);
       fetchProducts();
-    } catch (error) {
+    } catch {
       toast({
         title: "Error",
         description: "Failed to save product",
@@ -185,23 +222,77 @@ export function ProductTable() {
     }
   };
 
+  const stockBadge = (qty: number) => {
+    if (qty <= 0)
+      return <Badge variant="destructive" className="text-[10px]">Out</Badge>;
+    if (qty <= 3)
+      return (
+        <Badge className="text-[10px] bg-amber-100 text-amber-800 border-amber-200" variant="outline">
+          Low
+        </Badge>
+      );
+    return (
+      <Badge className="text-[10px] bg-green-100 text-green-800 border-green-200" variant="outline">
+        OK
+      </Badge>
+    );
+  };
+
   return (
-    <Card className="bg-card/80 backdrop-blur border-border/50">
+    <Card className="border-black/[0.04]">
       <CardHeader>
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <CardTitle className="text-xl">Product Management</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Create, view, edit, and delete your products.
+              Create, edit, search, and manage stock.
             </p>
           </div>
-          <Button onClick={handleAddProduct} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Product
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="rounded-full" onClick={fetchProducts}>
+              <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
+              Refresh
+            </Button>
+            <Button onClick={handleAddProduct} size="sm" className="rounded-full">
+              <Plus className="h-4 w-4 mr-1.5" />
+              Add Product
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row gap-2 pt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input
+              placeholder="Search name, brand, category…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9 rounded-full"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-9 rounded-full border border-input bg-background px-3 text-sm"
+          >
+            {categories.map((c) => (
+              <option key={c} value={c}>
+                {c === "All" ? "All categories" : c}
+              </option>
+            ))}
+          </select>
+          <select
+            value={stockFilter}
+            onChange={(e) => setStockFilter(e.target.value as "all" | "low" | "out")}
+            className="h-9 rounded-full border border-input bg-background px-3 text-sm"
+          >
+            <option value="all">All stock</option>
+            <option value="low">Low stock (≤3)</option>
+            <option value="out">Out of stock</option>
+          </select>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         <div className="overflow-auto">
           <Table>
@@ -209,78 +300,119 @@ export function ProductTable() {
               <TableRow>
                 <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Brand</TableHead>
+                <TableHead className="hidden md:table-cell">Brand</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Specifications</TableHead>
                 <TableHead>Price</TableHead>
                 <TableHead>Stock</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                     <img
-                       src={product.image_urls?.[0] || "https://placehold.co/600x400.png"}
-                       alt={product.name}
-                       className="w-12 h-12 object-cover rounded"
-                     />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.brand}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>
-                    <div className="text-xs space-y-1 max-w-48">
-                      {product.detailed_specs && Object.entries(product.detailed_specs).slice(0, 3).map(([key, value]) => (
-                        <div key={key} className="truncate">
-                          <span className="font-medium capitalize">{key}:</span> {value as string}
-                        </div>
-                      ))}
-                    </div>
-                  </TableCell>
-                  <TableCell>${product.price.toLocaleString()}</TableCell>
-                   <TableCell>{product.stock_quantity}</TableCell>
-                  <TableCell>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditProduct(product)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Product</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Are you sure you want to delete "{product.name}"? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteProduct(product.id)}
-                              className="bg-destructive hover:bg-destructive/90"
-                            >
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center text-muted-foreground py-10">
+                    {loading ? "Loading…" : "No products match your filters."}
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                filtered.map((product) => (
+                  <TableRow key={product.id}>
+                    <TableCell>
+                      <img
+                        src={product.image_urls?.[0] || "https://placehold.co/80x80.png"}
+                        alt={product.name}
+                        className="w-12 h-12 object-cover rounded-lg"
+                      />
+                    </TableCell>
+                    <TableCell className="font-medium max-w-[140px] truncate">
+                      {product.name}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{product.brand}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-[10px]">
+                        {product.category}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="tabular-nums">
+                      ${Number(product.price).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 p-0 rounded-full"
+                            onClick={() => adjustStock(product, -1)}
+                          >
+                            −
+                          </Button>
+                          <span className="w-6 text-center text-sm tabular-nums">
+                            {product.stock_quantity ?? 0}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-7 w-7 p-0 rounded-full"
+                            onClick={() => adjustStock(product, 1)}
+                          >
+                            +
+                          </Button>
+                        </div>
+                        {stockBadge(product.stock_quantity ?? 0)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full h-8 w-8 p-0"
+                          onClick={() => handleEditProduct(product)}
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="rounded-full h-8 w-8 p-0 text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Delete Product</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Delete "{product.name}"? This cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeleteProduct(product.id)}
+                                className="bg-destructive hover:bg-destructive/90"
+                              >
+                                Delete
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
+        <p className="text-xs text-muted-foreground mt-3">
+          Showing {filtered.length} of {products.length} products
+        </p>
       </CardContent>
 
       <ProductForm
