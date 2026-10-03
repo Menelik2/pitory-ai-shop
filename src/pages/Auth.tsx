@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,22 +7,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+  const { user, isAdmin, loading: authLoading, adminLoading, checkAdminStatus } = useAuth();
 
+  // If already signed in, send them to the right place
   useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        navigate("/");
-      }
-    };
-    checkAuth();
-  }, [navigate]);
+    if (authLoading || adminLoading) return;
+    if (!user) return;
+
+    if (isAdmin && (redirectTo === "/admin" || redirectTo.startsWith("/admin"))) {
+      navigate("/admin", { replace: true });
+    } else if (isAdmin && redirectTo === "/") {
+      // Default: admins landing on auth go to admin panel
+      navigate("/admin", { replace: true });
+    } else {
+      navigate(redirectTo.startsWith("/") ? redirectTo : "/", { replace: true });
+    }
+  }, [user, isAdmin, authLoading, adminLoading, navigate, redirectTo]);
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +42,8 @@ export default function Auth() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`
-        }
+          emailRedirectTo: `${window.location.origin}/`,
+        },
       });
 
       if (error) {
@@ -65,7 +74,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -76,12 +85,26 @@ export default function Auth() {
           description: error.message,
           variant: "destructive",
         });
+        return;
+      }
+
+      toast({
+        title: "Welcome back!",
+        description: "You've been signed in successfully.",
+      });
+
+      // Resolve admin role, then route
+      const userId = data.user?.id;
+      let admin = false;
+      if (userId) {
+        admin = await checkAdminStatus(userId);
+      }
+
+      if (admin) {
+        navigate("/admin", { replace: true });
       } else {
-        toast({
-          title: "Welcome back!",
-          description: "You've been signed in successfully.",
-        });
-        navigate("/");
+        const target = redirectTo.startsWith("/") ? redirectTo : "/";
+        navigate(target === "/admin" ? "/" : target, { replace: true });
       }
     } catch {
       toast({
@@ -108,10 +131,10 @@ export default function Auth() {
       >
         <CardHeader className="text-center space-y-2 pb-2">
           <CardTitle className="text-2xl font-semibold tracking-tight text-foreground">
-            Welcome to Pitory
+            Admin Login
           </CardTitle>
           <p className="text-muted-foreground text-sm">
-            Sign in to access admin features or create an account
+            Sign in to manage inventory and products
           </p>
         </CardHeader>
 
@@ -123,14 +146,23 @@ export default function Auth() {
                 bg-black/[0.04] backdrop-blur-sm
               "
             >
-              <TabsTrigger value="signin" className="rounded-full text-sm">Sign In</TabsTrigger>
-              <TabsTrigger value="signup" className="rounded-full text-sm">Sign Up</TabsTrigger>
+              <TabsTrigger value="signin" className="rounded-full text-sm">
+                Sign In
+              </TabsTrigger>
+              <TabsTrigger value="signup" className="rounded-full text-sm">
+                Sign Up
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="signin" className="mt-6">
               <form onSubmit={handleSignIn} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Label
+                    htmlFor="email"
+                    className="text-xs uppercase tracking-wider text-muted-foreground"
+                  >
+                    Email
+                  </Label>
                   <Input
                     id="email"
                     type="email"
@@ -138,11 +170,17 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                     className="h-11 rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+                  <Label
+                    htmlFor="password"
+                    className="text-xs uppercase tracking-wider text-muted-foreground"
+                  >
+                    Password
+                  </Label>
                   <Input
                     id="password"
                     type="password"
@@ -150,6 +188,7 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="current-password"
                     className="h-11 rounded-xl"
                   />
                 </div>
@@ -162,7 +201,12 @@ export default function Auth() {
             <TabsContent value="signup" className="mt-6">
               <form onSubmit={handleSignUp} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-xs uppercase tracking-wider text-muted-foreground">Email</Label>
+                  <Label
+                    htmlFor="signup-email"
+                    className="text-xs uppercase tracking-wider text-muted-foreground"
+                  >
+                    Email
+                  </Label>
                   <Input
                     id="signup-email"
                     type="email"
@@ -170,11 +214,17 @@ export default function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    autoComplete="email"
                     className="h-11 rounded-xl"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-xs uppercase tracking-wider text-muted-foreground">Password</Label>
+                  <Label
+                    htmlFor="signup-password"
+                    className="text-xs uppercase tracking-wider text-muted-foreground"
+                  >
+                    Password
+                  </Label>
                   <Input
                     id="signup-password"
                     type="password"
@@ -182,6 +232,7 @@ export default function Auth() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    autoComplete="new-password"
                     className="h-11 rounded-xl"
                   />
                 </div>
@@ -195,10 +246,10 @@ export default function Auth() {
           <div className="mt-6 text-center">
             <Button
               variant="ghost"
-              onClick={() => navigate("/")}
+              asChild
               className="text-sm text-muted-foreground hover:text-primary rounded-full"
             >
-              ← Back to Shop
+              <Link to="/">← Back to Shop</Link>
             </Button>
           </div>
         </CardContent>

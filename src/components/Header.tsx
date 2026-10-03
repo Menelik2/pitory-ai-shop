@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, ShoppingCart, Menu, User, LogOut } from "lucide-react";
+import { Search, ShoppingCart, Menu, User, LogOut, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -59,7 +59,10 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
             ))}
           </nav>
 
-          <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-sm mx-6">
+          <form
+            onSubmit={handleSearch}
+            className="hidden md:flex items-center flex-1 max-w-sm mx-6"
+          >
             <div className="relative w-full">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-3.5 w-3.5 z-10" />
               <Input
@@ -91,19 +94,34 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
               </Button>
             </Link>
 
-            <div className="hidden md:flex items-center ml-1">
+            {/* Desktop auth */}
+            <div className="hidden md:flex items-center ml-1 gap-1">
               {user ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={signOut}
-                  className="rounded-full text-muted-foreground hover:text-foreground h-9 text-[13px]"
-                >
-                  <LogOut className="h-3.5 w-3.5 mr-1.5" />
-                  Sign Out
-                </Button>
+                <>
+                  {isAdmin && (
+                    <Link to="/admin">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full text-muted-foreground hover:text-foreground h-9 text-[13px]"
+                      >
+                        <Shield className="h-3.5 w-3.5 mr-1.5" />
+                        Admin
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={signOut}
+                    className="rounded-full text-muted-foreground hover:text-foreground h-9 text-[13px]"
+                  >
+                    <LogOut className="h-3.5 w-3.5 mr-1.5" />
+                    Sign Out
+                  </Button>
+                </>
               ) : (
-                <Link to="/auth">
+                <Link to="/auth?redirect=/admin">
                   <Button
                     variant="outline"
                     size="sm"
@@ -115,12 +133,13 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                     "
                   >
                     <User className="h-3.5 w-3.5 mr-1.5" />
-                    Sign In
+                    Admin Login
                   </Button>
                 </Link>
               )}
             </div>
 
+            {/* Mobile menu */}
             <div className="md:hidden">
               <Sheet open={isOpen} onOpenChange={setIsOpen}>
                 <SheetTrigger asChild>
@@ -164,6 +183,41 @@ export function Header({ cartItemCount, onSearch }: HeaderProps) {
                           {link.name}
                         </Link>
                       ))}
+
+                      {user ? (
+                        <>
+                          {isAdmin && (
+                            <Link
+                              to="/admin"
+                              className="px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-black/[0.04] transition-colors flex items-center gap-2"
+                              onClick={() => setIsOpen(false)}
+                            >
+                              <Shield className="h-4 w-4" />
+                              Admin
+                            </Link>
+                          )}
+                          <button
+                            type="button"
+                            className="px-3 py-2.5 rounded-xl text-[15px] font-medium text-left text-foreground hover:bg-black/[0.04] transition-colors flex items-center gap-2"
+                            onClick={() => {
+                              setIsOpen(false);
+                              signOut();
+                            }}
+                          >
+                            <LogOut className="h-4 w-4" />
+                            Sign Out
+                          </button>
+                        </>
+                      ) : (
+                        <Link
+                          to="/auth?redirect=/admin"
+                          className="px-3 py-2.5 rounded-xl text-[15px] font-medium text-foreground hover:bg-black/[0.04] transition-colors flex items-center gap-2"
+                          onClick={() => setIsOpen(false)}
+                        >
+                          <User className="h-4 w-4" />
+                          Admin Login
+                        </Link>
+                      )}
                     </nav>
                   </div>
                 </SheetContent>

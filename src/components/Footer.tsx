@@ -1,4 +1,5 @@
 import { Phone, Mail } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function Footer() {
   return (
@@ -16,9 +17,9 @@ export function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
           <div className="sm:col-span-2 md:col-span-1">
             <h3 className="font-semibold text-[15px] tracking-tight text-foreground mb-3">
-              <a href="/" className="hover:text-primary transition-colors">
+              <Link to="/" className="hover:text-primary transition-colors">
                 Pitory
-              </a>
+              </Link>
             </h3>
             <p className="text-[13px] text-muted-foreground leading-relaxed max-w-xs">
               High-performance computers with exceptional service.
@@ -62,9 +63,24 @@ export function Footer() {
               Links
             </h4>
             <div className="space-y-2 text-[13px]">
-              <p><a href="/" className="text-foreground/80 hover:text-primary transition-colors">Home</a></p>
-              <p><a href="/cart" className="text-foreground/80 hover:text-primary transition-colors">Cart</a></p>
-              <p><a href="/admin" className="text-foreground/80 hover:text-primary transition-colors">Admin</a></p>
+              <p>
+                <Link to="/" className="text-foreground/80 hover:text-primary transition-colors">
+                  Home
+                </Link>
+              </p>
+              <p>
+                <Link to="/cart" className="text-foreground/80 hover:text-primary transition-colors">
+                  Cart
+                </Link>
+              </p>
+              <p>
+                <Link
+                  to="/auth?redirect=/admin"
+                  className="text-foreground/80 hover:text-primary transition-colors"
+                >
+                  Admin Login
+                </Link>
+              </p>
             </div>
           </div>
         </div>

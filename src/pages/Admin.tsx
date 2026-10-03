@@ -10,25 +10,33 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function Admin() {
   const { getTotalItems } = useCart();
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, loading, adminLoading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) {
+    // Wait until auth + admin role are fully resolved
+    if (loading || adminLoading) return;
+
+    if (!user) {
+      navigate("/auth?redirect=/admin", { replace: true });
+      return;
+    }
+
+    if (!isAdmin) {
       toast({
         title: "Access Denied",
         description: "You need admin privileges to access this page.",
         variant: "destructive",
       });
-      navigate("/auth");
+      navigate("/auth?redirect=/admin", { replace: true });
     }
-  }, [user, isAdmin, loading, navigate, toast]);
+  }, [user, isAdmin, loading, adminLoading, navigate, toast]);
 
-  if (loading) {
+  if (loading || adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-xl text-muted-foreground">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <p className="text-muted-foreground">Checking access...</p>
       </div>
     );
   }
@@ -38,21 +46,21 @@ export default function Admin() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-background">
       <Header cartItemCount={getTotalItems()} onSearch={() => {}} />
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Inventory Manager</h1>
+          <h1 className="text-3xl font-semibold tracking-tight mb-2">Inventory Manager</h1>
           <p className="text-muted-foreground">
             An overview of your current product inventory and value.
           </p>
         </div>
-        
+
         <InventoryStats />
         <ProductTable />
       </main>
-      
+
       <Footer />
     </div>
   );
