@@ -9,9 +9,14 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border bg-card text-card-foreground shadow-sm",
+      "rounded-2xl border border-black/[0.04] text-card-foreground shadow-sm",
+      "bg-white/75 backdrop-blur-[20px] backdrop-saturate-[180%]",
       className
     )}
+    style={{
+      WebkitBackdropFilter: "saturate(180%) blur(20px)",
+      ...((props as React.HTMLAttributes<HTMLDivElement>).style || {}),
+    }}
     {...props}
   />
 ))

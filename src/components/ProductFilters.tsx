@@ -15,7 +15,16 @@ export function ProductFilters({
 }: ProductFiltersProps) {
   return (
     <div className="mb-10 hidden lg:block">
-      <div className="flex flex-wrap justify-center gap-2">
+      <div
+        className="
+          flex flex-wrap justify-center gap-2 p-3 rounded-2xl
+          bg-white/60 backdrop-blur-xl backdrop-saturate-150
+          border border-black/[0.04]
+        "
+        style={{
+          WebkitBackdropFilter: "saturate(150%) blur(16px)",
+        }}
+      >
         {categories.map((category) => {
           const isActive = selectedCategory === category;
           return (
@@ -27,7 +36,7 @@ export function ProductFilters({
                 ${
                   isActive
                     ? "bg-foreground text-background shadow-sm"
-                    : "bg-white text-muted-foreground border border-black/[0.06] hover:border-black/10 hover:text-foreground hover:bg-[#fafafa]"
+                    : "bg-white/50 text-muted-foreground border border-black/[0.06] backdrop-blur-sm hover:border-black/10 hover:text-foreground hover:bg-white/80"
                 }
               `}
             >

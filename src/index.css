@@ -2,13 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Premium light design system — refined neutrals, soft depth, Apple-style blur */
+/* Premium light design system — Apple-style frosted glass everywhere */
 
 @layer base {
   :root {
     --background: 40 20% 98%;
     --foreground: 220 20% 10%;
 
+    /* Translucent card so glass shows through */
     --card: 0 0% 100%;
     --card-foreground: 220 20% 10%;
 
@@ -40,7 +41,7 @@
     --gradient-to: 215 85% 38%;
     --gradient-primary: linear-gradient(180deg, hsl(40 20% 99%), hsl(40 20% 97%));
     --gradient-secondary: linear-gradient(180deg, hsl(220 14% 98%), hsl(220 14% 96%));
-    --gradient-card: linear-gradient(180deg, #ffffff, #ffffff);
+    --gradient-card: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.85));
     --glow-primary: 0 0 0 transparent;
     --shadow-elegant: 0 1px 2px hsl(220 20% 10% / 0.04), 0 4px 16px hsl(220 20% 10% / 0.04);
     --shadow-card: 0 1px 2px hsl(220 20% 10% / 0.03), 0 8px 24px hsl(220 20% 10% / 0.05);
@@ -85,7 +86,7 @@
     background: rgba(255, 255, 255, 0.72);
     backdrop-filter: saturate(180%) blur(20px);
     -webkit-backdrop-filter: saturate(180%) blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(0, 0, 0, 0.04);
   }
 
   .glass-thick {
@@ -99,7 +100,7 @@
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: saturate(180%) blur(12px);
     -webkit-backdrop-filter: saturate(180%) blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(0, 0, 0, 0.04);
   }
 
   .glass-dark {
@@ -111,6 +112,18 @@
 
   .glass-effect {
     @apply glass;
+  }
+
+  .glass-input {
+    background: rgba(0, 0, 0, 0.04);
+    backdrop-filter: saturate(150%) blur(8px);
+    -webkit-backdrop-filter: saturate(150%) blur(8px);
+  }
+
+  .glass-input:focus {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: saturate(180%) blur(12px);
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
   }
 
   .tech-gradient {
@@ -146,7 +159,7 @@
   }
 
   .premium-card {
-    @apply bg-white border border-black/[0.04] rounded-2xl;
+    @apply glass rounded-2xl;
     box-shadow: var(--shadow-card);
   }
 
