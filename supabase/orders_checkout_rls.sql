@@ -1,33 +1,53 @@
 -- ============================================================
--- Pitory AI Shop — Orders Checkout RLS Policies
--- Run this once in Supabase → SQL Editor
--- ============================================================
--- Allows guests to place orders (Name, Location, Phone)
--- Allows admins to view and update orders
+-- Pitory AI Shop — FIX: Allow guest checkout (orders RLS)
+-- Run this ENTIRE script once in: Supabase → SQL Editor → Run
 -- ============================================================
 
+-- 1) Enable RLS
 ALTER TABLE public.orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.order_items ENABLE ROW LEVEL SECURITY;
 
--- Public can insert orders (guest checkout)
-DROP POLICY IF EXISTS "Anyone can create orders" ON public.orders;
-CREATE POLICY "Anyone can create orders"
+-- 2) Drop ALL existing policies on these tables (avoids name conflicts)
+DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN (
+    SELECT policyname, tablename
+    FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename IN ('orders', 'order_items')
+  ) LOOP
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', r.policyname, r.tablename);
+  END LOOP;
+END $$;
+
+-- 3) Grants so anon (website visitors) can insert
+GRANT USAGE ON SCHEMA public TO anon, authenticated;
+GRANT INSERT ON public.orders TO anon, authenticated;
+GRANT INSERT ON public.order_items TO anon, authenticated;
+GRANT SELECT, UPDATE ON public.orders TO authenticated;
+GRANT SELECT ON public.order_items TO authenticated;
+
+-- 4) Guest checkout: anyone can INSERT orders
+CREATE POLICY "orders_insert_public"
 ON public.orders
 FOR INSERT
+TO anon, authenticated
 WITH CHECK (true);
 
--- Public can insert order items for new orders
-DROP POLICY IF EXISTS "Anyone can create order items" ON public.order_items;
-CREATE POLICY "Anyone can create order items"
+-- 5) Guest checkout: anyone can INSERT order_items
+CREATE POLICY "order_items_insert_public"
 ON public.order_items
 FOR INSERT
+TO anon, authenticated
 WITH CHECK (true);
 
--- Admins can view all orders
-DROP POLICY IF EXISTS "Admins can view orders" ON public.orders;
-CREATE POLICY "Admins can view orders"
+-- 6) Admins can SELECT all orders
+CREATE POLICY "orders_select_admin"
 ON public.orders
 FOR SELECT
+TO authenticated
 USING (
   EXISTS (
     SELECT 1 FROM public.profiles
@@ -36,11 +56,31 @@ USING (
   OR (auth.jwt() ->> 'email') = 'linuxos777@gmail.com'
 );
 
--- Admins can update orders (status)
-DROP POLICY IF EXISTS "Admins can update orders" ON public.orders;
-CREATE POLICY "Admins can update orders"
+-- 7) Admins can UPDATE orders (status)
+CREATE POLICY "orders_update_admin"
 ON public.orders
 FOR UPDATE
+TO authenticated
+USING (
+  EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  )
+  OR (auth.jwt() ->> 'email') = 'linuxos777@gmail.com'
+)
+WITH CHECK (
+  EXISTS (
+    SELECT 1 FROM public.profiles
+    WHERE id = auth.uid() AND role = 'admin'
+  )
+  OR (auth.jwt() ->> 'email') = 'linuxos777@gmail.com'
+);
+
+-- 8) Admins can SELECT order_items
+CREATE POLICY "order_items_select_admin"
+ON public.order_items
+FOR SELECT
+TO authenticated
 USING (
   EXISTS (
     SELECT 1 FROM public.profiles
@@ -49,15 +89,4 @@ USING (
   OR (auth.jwt() ->> 'email') = 'linuxos777@gmail.com'
 );
 
--- Admins can view order items
-DROP POLICY IF EXISTS "Admins can view order items" ON public.order_items;
-CREATE POLICY "Admins can view order items"
-ON public.order_items
-FOR SELECT
-USING (
-  EXISTS (
-    SELECT 1 FROM public.profiles
-    WHERE id = auth.uid() AND role = 'admin'
-  )
-  OR (auth.jwt() ->> 'email') = 'linuxos777@gmail.com'
-);
+-- Done. Try Place Order again on the website.

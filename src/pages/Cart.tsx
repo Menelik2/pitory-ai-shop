@@ -19,6 +19,17 @@ import { useCart } from "@/context/CartContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+function newId() {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export default function Cart() {
   const {
     cartItems,
@@ -72,30 +83,29 @@ export default function Cart() {
     setSubmitting(true);
 
     try {
+      const orderId = newId();
       const shippingAddress = {
         customer_name: name,
         location: loc,
         phone: tel,
       };
 
-      const { data: order, error: orderError } = await supabase
-        .from("orders")
-        .insert({
-          total_amount: totalPrice,
-          shipping_amount: 0,
-          tax_amount: 0,
-          status: "pending",
-          shipping_address: shippingAddress,
-          user_id: null,
-        })
-        .select("id")
-        .single();
+      // Insert without .select() so we only need INSERT RLS (not SELECT)
+      const { error: orderError } = await supabase.from("orders").insert({
+        id: orderId,
+        total_amount: totalPrice,
+        shipping_amount: 0,
+        tax_amount: 0,
+        status: "pending",
+        shipping_address: shippingAddress,
+        user_id: null,
+      });
 
       if (orderError) throw orderError;
-      if (!order?.id) throw new Error("Order was not created");
 
       const orderItems = cartItems.map((item) => ({
-        order_id: order.id,
+        id: newId(),
+        order_id: orderId,
         product_id: item.id,
         quantity: item.quantity,
         unit_price: item.price,
@@ -117,11 +127,13 @@ export default function Cart() {
       });
     } catch (err: any) {
       console.error("Checkout error:", err);
+      const msg = err?.message || "";
+      const isRls = /row-level security|RLS|policy/i.test(msg);
       toast({
         title: "Could not place order",
-        description:
-          err?.message ||
-          "Something went wrong. Please try again or call us.",
+        description: isRls
+          ? "Database permission error. Please run supabase/orders_checkout_rls.sql in Supabase SQL Editor."
+          : msg || "Something went wrong. Please try again or call us.",
         variant: "destructive",
       });
     } finally {
@@ -302,7 +314,6 @@ export default function Cart() {
 
       <Footer />
 
-      {/* Checkout dialog: Name, Location, Phone → saved for admin */}
       <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -317,7 +328,10 @@ export default function Cart() {
 
           <form onSubmit={handlePlaceOrder} className="space-y-4 pt-1">
             <div className="space-y-2">
-              <Label htmlFor="checkout-name" className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="checkout-name"
+                className="text-xs uppercase tracking-wider text-muted-foreground"
+              >
                 Full name
               </Label>
               <div className="relative">
@@ -335,7 +349,10 @@ export default function Cart() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="checkout-location" className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="checkout-location"
+                className="text-xs uppercase tracking-wider text-muted-foreground"
+              >
                 Location / Address
               </Label>
               <div className="relative">
@@ -353,7 +370,10 @@ export default function Cart() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="checkout-phone" className="text-xs uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="checkout-phone"
+                className="text-xs uppercase tracking-wider text-muted-foreground"
+              >
                 Phone number
               </Label>
               <div className="relative">
