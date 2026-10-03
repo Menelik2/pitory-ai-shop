@@ -14,7 +14,7 @@ interface CommentRow {
   user_name: string | null;
   product_id: string;
   created_at: string;
-  products?: { name: string; slug: string } | null;
+  product_name?: string;
 }
 
 export function CommentsList() {
@@ -26,31 +26,38 @@ export function CommentsList() {
   const fetchComments = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data: commentsData, error } = await supabase
         .from("product_comments")
-        .select(
-          `
-          id,
-          comment,
-          user_name,
-          product_id,
-          created_at,
-          products ( name, slug )
-        `
-        )
+        .select("id, comment, user_name, product_id, created_at")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        // Fallback if join fails (no FK)
-        const { data: plain, error: e2 } = await supabase
-          .from("product_comments")
-          .select("id, comment, user_name, product_id, created_at")
-          .order("created_at", { ascending: false });
-        if (e2) throw e2;
-        setComments((plain as CommentRow[]) || []);
-        return;
+      if (error) throw error;
+
+      const list = (commentsData || []) as CommentRow[];
+
+      // Resolve product names (no FK required)
+      const productIds = [...new Set(list.map((c) => c.product_id).filter(Boolean))];
+      let nameById: Record<string, string> = {};
+
+      if (productIds.length > 0) {
+        const { data: productsData } = await supabase
+          .from("products")
+          .select("id, name")
+          .in("id", productIds);
+
+        nameById = Object.fromEntries(
+          (productsData || []).map((p) => [p.id, p.name])
+        );
       }
-      setComments((data as unknown as CommentRow[]) || []);
+
+      setComments(
+        list.map((c) => ({
+          ...c,
+          products: c.product_id
+            ? { name: nameById[c.product_id] || "Unknown product", slug: c.product_id }
+            : null,
+        }))
+      );
     } catch (err: any) {
       console.error(err);
       toast({
@@ -179,7 +186,7 @@ export function CommentsList() {
                           className="rounded-full h-8 text-xs"
                           asChild
                         >
-                          <Link to={`/product/${c.product_id}`}>
+                          <Link to={`/products/${c.product_id}`}>
                             <ExternalLink className="h-3 w-3 mr-1" />
                             View product
                           </Link>

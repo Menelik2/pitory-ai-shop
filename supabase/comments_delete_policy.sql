@@ -5,9 +5,9 @@
 
 ALTER TABLE public.product_comments ENABLE ROW LEVEL SECURITY;
 
-GRANT SELECT, INSERT, DELETE ON public.product_comments TO anon, authenticated;
+GRANT SELECT, INSERT ON public.product_comments TO anon, authenticated;
+GRANT DELETE ON public.product_comments TO authenticated;
 
--- Ensure public can still read & post
 DROP POLICY IF EXISTS "Anyone can view comments" ON public.product_comments;
 CREATE POLICY "Anyone can view comments"
 ON public.product_comments FOR SELECT
@@ -18,7 +18,6 @@ CREATE POLICY "Anyone can insert comments"
 ON public.product_comments FOR INSERT
 WITH CHECK (true);
 
--- Admin delete
 DROP POLICY IF EXISTS "Admins can delete comments" ON public.product_comments;
 CREATE POLICY "Admins can delete comments"
 ON public.product_comments
